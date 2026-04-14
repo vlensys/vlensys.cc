@@ -4,6 +4,35 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matc
 const reveals = document.querySelectorAll(".reveal");
 const cursorRing = document.querySelector(".cursor-ring");
 const cursorDot = document.querySelector(".cursor-dot");
+const themeToggle = document.querySelector(".theme-toggle");
+const themeQuery = window.matchMedia("(prefers-color-scheme: light)");
+const storedTheme = window.localStorage.getItem("theme");
+const initialTheme = storedTheme === "light" || storedTheme === "dark"
+    ? storedTheme
+    : themeQuery.matches ? "light" : "dark";
+const applyTheme = (theme, persist = true) => {
+    root.dataset.theme = theme;
+    if (themeToggle) {
+        const nextTheme = theme === "dark" ? "light" : "dark";
+        themeToggle.textContent = nextTheme;
+        themeToggle.setAttribute("aria-label", `switch to ${nextTheme} mode`);
+        themeToggle.setAttribute("aria-pressed", theme === "light" ? "true" : "false");
+    }
+    if (persist) {
+        window.localStorage.setItem("theme", theme);
+    }
+};
+applyTheme(initialTheme, false);
+if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+        applyTheme(root.dataset.theme === "light" ? "dark" : "light");
+    });
+}
+themeQuery.addEventListener("change", (event) => {
+    if (window.localStorage.getItem("theme"))
+        return;
+    applyTheme(event.matches ? "light" : "dark", false);
+});
 const observer = new IntersectionObserver((entries, intersectionObserver) => {
     entries.forEach((entry) => {
         if (!entry.isIntersecting)

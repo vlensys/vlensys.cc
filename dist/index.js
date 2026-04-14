@@ -220,6 +220,7 @@ const state = {
     dpr: Math.min(window.devicePixelRatio || 1, 2)
 };
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+const isLightTheme = () => root.dataset.theme === "light";
 const ball = {
     x: 0,
     y: 0,
@@ -503,6 +504,13 @@ const drawBall = () => {
     ctx.fillStyle = "#ffffff";
     ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     ctx.fill();
+    if (isLightTheme()) {
+        ctx.beginPath();
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 1.5;
+        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+        ctx.stroke();
+    }
     ctx.save();
     ctx.translate(ball.x, ball.y);
     ctx.rotate(ball.angle);

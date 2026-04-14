@@ -1,4 +1,4 @@
-// v1.0.1
+// v1.0.11
 const root = document.body;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const reveals = document.querySelectorAll<HTMLElement>(".reveal");
@@ -300,6 +300,13 @@ const resetBall = () => {
   ball.grabbed = false;
 };
 
+const resetWater = () => {
+  tilt.current = 0;
+  tilt.target = 0;
+  slosh.phase = 0;
+  slosh.amplitude = 0;
+};
+
 const tank = {
   padding: 28,
   width: 0,
@@ -357,6 +364,29 @@ const enableOrientationTracking = async () => {
   if (motionButton) motionButton.hidden = true;
 };
 
+const syncCanvasMode = () => {
+  const nextIsMobileCanvas = mobileCanvasQuery.matches;
+  if (nextIsMobileCanvas === isMobileCanvas) {
+    if (motionButton) motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi;
+    return;
+  }
+
+  isMobileCanvas = nextIsMobileCanvas;
+
+  if (isMobileCanvas) {
+    ball.grabbed = false;
+    resetWater();
+  } else {
+    resetBall();
+    if (!supportsDeviceOrientation) {
+      tilt.current = 0;
+      tilt.target = 0;
+    }
+  }
+
+  if (motionButton) motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi;
+};
+
 const resizeCanvas = () => {
   const rect = panel.getBoundingClientRect();
   state.width = rect.width;
@@ -364,7 +394,7 @@ const resizeCanvas = () => {
   canvas.width = Math.floor(rect.width * state.dpr);
   canvas.height = Math.floor(rect.height * state.dpr);
   ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
-  isMobileCanvas = mobileCanvasQuery.matches;
+  syncCanvasMode();
 
   if (!isMobileCanvas && ball.x === 0 && ball.y === 0) resetBall();
   if (!isMobileCanvas && !ball.grabbed) {
@@ -382,6 +412,7 @@ const resizeCanvas = () => {
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 mobileCanvasQuery.addEventListener("change", () => {
+  syncCanvasMode();
   resizeCanvas();
 });
 

@@ -22,6 +22,125 @@ reveals.forEach((element) => {
 window.addEventListener("load", () => {
     root.classList.add("is-ready");
 });
+const tracks = document.querySelectorAll(".track");
+const spotifyHost = document.querySelector(".spotify-controller-slot");
+const spotifyWindow = window;
+let activeTrack = null;
+let isPlaying = false;
+let spotifyController = null;
+let spotifyReady = false;
+let pendingPlay = false;
+let pendingPlayUntil = 0;
+let requestedSpotifyUri = null;
+let suppressPlaybackUpdatesUntil = 0;
+let switchingTrack = false;
+const syncTrackButtons = () => {
+    tracks.forEach((track) => {
+        const button = track.querySelector(".track-play");
+        if (!button)
+            return;
+        const isCurrent = track === activeTrack;
+        const showPause = isCurrent && (isPlaying || pendingPlay);
+        const showLoading = isCurrent && switchingTrack && pendingPlay;
+        track.classList.toggle("is-open", showPause || showLoading);
+        button.textContent = showLoading ? "loading" : showPause ? "pause" : "play";
+        button.setAttribute("aria-pressed", showPause ? "true" : "false");
+        button.disabled = !spotifyReady;
+    });
+};
+spotifyWindow.onSpotifyIframeApiReady = (api) => {
+    const firstTrackUri = tracks[0]?.dataset.spotifyUri;
+    if (!spotifyHost)
+        return;
+    if (!firstTrackUri)
+        return;
+    api.createController(spotifyHost, {
+        uri: firstTrackUri,
+        width: 320,
+        height: 80
+    }, (controller) => {
+        spotifyController = controller;
+        controller.addListener("ready", () => {
+            spotifyReady = true;
+            syncTrackButtons();
+        });
+        controller.addListener("playback_started", () => {
+            pendingPlay = false;
+            pendingPlayUntil = 0;
+            suppressPlaybackUpdatesUntil = 0;
+            switchingTrack = false;
+            isPlaying = true;
+            syncTrackButtons();
+        });
+        controller.addListener("playback_update", (event) => {
+            if (Date.now() < suppressPlaybackUpdatesUntil) {
+                syncTrackButtons();
+                return;
+            }
+            const playingUri = typeof event?.data?.playingURI === "string" ? event.data.playingURI : null;
+            const paused = Boolean(event?.data?.isPaused);
+            const buffering = Boolean(event?.data?.isBuffering);
+            const withinPendingWindow = pendingPlay && Date.now() < pendingPlayUntil;
+            const isCurrentTrackEvent = !requestedSpotifyUri || !playingUri || playingUri === requestedSpotifyUri;
+            if (!isCurrentTrackEvent)
+                return;
+            if (withinPendingWindow && (buffering || paused)) {
+                syncTrackButtons();
+                return;
+            }
+            pendingPlay = false;
+            pendingPlayUntil = 0;
+            switchingTrack = false;
+            isPlaying = !paused;
+            syncTrackButtons();
+        });
+    });
+};
+tracks.forEach((track) => {
+    const button = track.querySelector(".track-play");
+    if (!button)
+        return;
+    button.disabled = true;
+    button.addEventListener("click", () => {
+        const spotifyUri = track.dataset.spotifyUri;
+        if (!spotifyController || !spotifyReady || !spotifyUri)
+            return;
+        if (activeTrack === track) {
+            if (isPlaying) {
+                pendingPlay = false;
+                pendingPlayUntil = 0;
+                requestedSpotifyUri = spotifyUri;
+                suppressPlaybackUpdatesUntil = 0;
+                switchingTrack = false;
+                isPlaying = false;
+                syncTrackButtons();
+                spotifyController.pause();
+            }
+            else {
+                pendingPlay = true;
+                pendingPlayUntil = Date.now() + 4000;
+                requestedSpotifyUri = spotifyUri;
+                suppressPlaybackUpdatesUntil = Date.now() + 1500;
+                switchingTrack = false;
+                isPlaying = true;
+                syncTrackButtons();
+                spotifyController.resume();
+            }
+            return;
+        }
+        spotifyController.loadUri(spotifyUri);
+        activeTrack = track;
+        isPlaying = true;
+        pendingPlay = true;
+        pendingPlayUntil = Date.now() + 4000;
+        requestedSpotifyUri = spotifyUri;
+        suppressPlaybackUpdatesUntil = Date.now() + 2000;
+        switchingTrack = true;
+        syncTrackButtons();
+        spotifyController.play();
+    });
+});
+syncTrackButtons();
 const canvas = document.getElementById("field");
 if (!(canvas instanceof HTMLCanvasElement))
     throw new Error("Canvas element #field was not found.");

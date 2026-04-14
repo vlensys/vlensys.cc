@@ -12,6 +12,9 @@
 <body>
   <div class="cursor-ring" aria-hidden="true"></div>
   <div class="cursor-dot" aria-hidden="true"></div>
+  <div class="spotify-controller-host" aria-hidden="true">
+    <div class="spotify-controller-slot"></div>
+  </div>
   <main class="page">
     <header class="site-header reveal load-in" style="--delay:0;">
       <a class="brand" href="#top" aria-label="Back to top">
@@ -19,10 +22,10 @@
         <span>vlensys</span>
       </a>
       <nav class="nav">
-        <a class="chip" href="#play">Play</a>
-        <a class="chip" href="#about">About</a>
-        <a class="chip" href="#music">Music</a>
-        <a class="chip" href="#links">Links</a>
+        <a class="chip" href="#play">play</a>
+        <a class="chip" href="#about">about</a>
+        <a class="chip" href="#music">music</a>
+        <a class="chip" href="#links">links</a>
       </nav>
     </header>
 
@@ -44,37 +47,49 @@
       <div class="section-tag">about</div>
       <div class="about-copy">
         <p>i make stuff that benefit me</p>
-        <p>like hyprbole and lyricspot</p>
+        <p>i really really love shoegaze and that kind of music (and jazz!)</p>
       </div>
     </section>
 
     <section class="music-section reveal" id="music">
       <div class="section-tag">music that i like</div>
       <div class="track-list">
-        <a class="track" href="https://open.spotify.com/search/yuragi%20i%20want%20you%20by%20my%20side" target="_blank" rel="noreferrer">
-          <span class="track-no">01</span>
-          <span class="track-main">
-            <span class="track-line"><span class="track-artist">yuragi</span><span class="track-sep">-</span><span class="track-title">i want you by my side</span></span>
-          </span>
-        </a>
-        <a class="track" href="https://open.spotify.com/search/kino%20pachka%20sigaret" target="_blank" rel="noreferrer">
-          <span class="track-no">02</span>
-          <span class="track-main">
-            <span class="track-line"><span class="track-artist">kino</span><span class="track-sep">-</span><span class="track-title">pachka sigaret</span></span>
-          </span>
-        </a>
-        <a class="track" href="https://open.spotify.com/search/buckshot%20backseat" target="_blank" rel="noreferrer">
-          <span class="track-no">03</span>
-          <span class="track-main">
-            <span class="track-line"><span class="track-artist">buckshot</span><span class="track-sep">-</span><span class="track-title">backseat</span></span>
-          </span>
-        </a>
-        <a class="track" href="https://open.spotify.com/search/what%20is%20your%20name%20you%20can't%20turn%20back%20time" target="_blank" rel="noreferrer">
-          <span class="track-no">04</span>
-          <span class="track-main">
-            <span class="track-line"><span class="track-artist">what is your name?</span><span class="track-sep">-</span><span class="track-title">you can't turn back time</span></span>
-          </span>
-        </a>
+        <article class="track" data-spotify-uri="spotify:track:6RVfG5WnuumV1I5pCIhB1N">
+          <div class="track-head">
+            <span class="track-no">01</span>
+            <span class="track-main">
+              <span class="track-line"><span class="track-artist">yuragi</span><span class="track-sep">-</span><span class="track-title">i want you by my side</span></span>
+            </span>
+            <button class="track-play" type="button" aria-pressed="false">play</button>
+          </div>
+        </article>
+        <article class="track" data-spotify-uri="spotify:track:7tjVRlo5QYUpPOocaJb387">
+          <div class="track-head">
+            <span class="track-no">02</span>
+            <span class="track-main">
+              <span class="track-line"><span class="track-artist">kino</span><span class="track-sep">-</span><span class="track-title">Пачка сигарет</span></span>
+            </span>
+            <button class="track-play" type="button" aria-pressed="false">play</button>
+          </div>
+        </article>
+        <article class="track" data-spotify-uri="spotify:track:2F3La4OE9rPNOm9JmUoyEt">
+          <div class="track-head">
+            <span class="track-no">03</span>
+            <span class="track-main">
+              <span class="track-line"><span class="track-artist">buckshot</span><span class="track-sep">-</span><span class="track-title">backseat</span></span>
+            </span>
+            <button class="track-play" type="button" aria-pressed="false">play</button>
+          </div>
+        </article>
+        <article class="track" data-spotify-uri="spotify:track:39HYTgxXGVqCDyDDVNKTEx">
+          <div class="track-head">
+            <span class="track-no">04</span>
+            <span class="track-main">
+              <span class="track-line"><span class="track-artist">what is your name?</span><span class="track-sep">-</span><span class="track-title">you can't turn back time</span></span>
+            </span>
+            <button class="track-play" type="button" aria-pressed="false">play</button>
+          </div>
+        </article>
       </div>
     </section>
 
@@ -106,5 +121,6 @@
   </main>
 
   <script defer src="dist/index.js"></script>
+  <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
 </body>
 </html>

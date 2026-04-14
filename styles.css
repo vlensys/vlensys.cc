@@ -255,6 +255,43 @@ body.cursor-down .cursor-ring {
   cursor: grabbing;
 }
 
+.play-hud {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.motion-button {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(5, 5, 5, 0.72);
+  backdrop-filter: blur(12px);
+  color: rgba(255, 255, 255, 0.84);
+  font-family: var(--dm-sans);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+}
+
+.motion-button {
+  padding: 10px 14px;
+  pointer-events: auto;
+  transition: border-color 180ms var(--ease), background 180ms var(--ease), color 180ms var(--ease);
+}
+
+.motion-button:hover,
+.motion-button:focus-visible {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  outline: none;
+}
+
 .browser-window {
   position: absolute;
   top: 0;
@@ -570,19 +607,6 @@ body.cursor-down .cursor-ring {
   transform: translateX(5px);
 }
 
-.footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  width: min(100%, 320px);
-  margin-top: 90px;
-  margin-left: 8px;
-  color: rgba(255, 255, 255, 0.54);
-  font-size: 0.76rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 .reveal {
   opacity: 0;
   transform: translateY(18px);
@@ -598,36 +622,226 @@ body.cursor-down .cursor-ring {
 
 @media (max-width: 920px) {
   .page {
-    width: min(calc(100% - 24px), var(--page-width));
+    width: min(calc(100% - 28px), var(--page-width));
+    padding: 16px 0 40px;
   }
 
   .hero {
     grid-template-columns: 1fr;
+    min-height: auto;
+    gap: 0;
+    padding: 24px 0 0;
+  }
+
+  .site-header {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 6px 0 10px;
+  }
+
+  .nav {
+    justify-content: center;
+    gap: 12px 18px;
+  }
+
+  .nav .chip[href="#play"] {
+    display: inline-flex;
+  }
+
+  .hero-copy {
+    padding-top: 0;
+    padding-bottom: 30px;
+    border-bottom: 1px solid var(--soft);
+    text-align: center;
+  }
+
+  .hero-title {
+    font-size: clamp(3.4rem, 20vw, 5.8rem);
+    line-height: 0.94;
+  }
+
+  .hero-blurb {
+    margin-top: 12px;
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 28ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-actions {
+    margin-top: 22px;
+    justify-content: center;
+  }
+
+  .play-area {
+    display: block;
+    min-height: 360px;
+    margin-top: 24px;
+  }
+
+  #field {
+    min-height: 360px;
+  }
+
+  .about-section {
+    margin-top: 28px;
+    gap: 10px;
+    justify-items: center;
+  }
+
+  .about-copy {
+    font-size: 1rem;
+    line-height: 1.7;
+    gap: 10px;
+    max-width: 34ch;
+    text-align: center;
+  }
+
+  .music-section,
+  .links-section {
+    margin-top: 46px;
+  }
+
+  .music-section {
+    padding-top: 22px;
+  }
+
+  .section-tag {
+    display: block;
+    text-align: center;
+  }
+
+  .track-list,
+  .links-stack {
+    width: 100%;
+  }
+
+  .track-line {
+    font-size: 0.96rem;
+    line-height: 1.58;
+  }
+
+  .link-row {
+    grid-template-columns: 1fr auto;
+    gap: 8px 16px;
+    padding: 16px 16px 15px;
+  }
+
+  .link-value {
+    grid-column: 1;
+    font-size: 0.96rem;
+  }
+
+  .link-arrow {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+
+  .play-hud {
+    right: 12px;
+    bottom: 12px;
+    align-items: flex-end;
+  }
+
+  .motion-button {
+    text-align: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .page {
+    width: min(calc(100% - 22px), var(--page-width));
+    padding-bottom: 34px;
+  }
+
+  .site-header {
+    gap: 12px;
+  }
+
+  .brand {
+    font-size: 0.8rem;
+  }
+
+  .nav {
+    gap: 10px 16px;
+    font-size: 0.9rem;
+  }
+
+  .chip {
+    min-height: 24px;
+  }
+
+  .hero {
+    padding-top: 16px;
+  }
+
+  .hero-title {
+    font-size: clamp(3rem, 20vw, 4.4rem);
+  }
+
+  .section-tag {
+    margin-bottom: 10px;
+    font-size: 0.84rem;
+    letter-spacing: 0.03em;
+  }
+
+  .about-section {
+    margin-top: 24px;
+  }
+
+  .music-section,
+  .links-section {
+    margin-top: 40px;
+  }
+
+  .music-section {
+    padding-top: 18px;
   }
 
   .play-area,
   #field {
-    min-height: 420px;
+    min-height: 300px;
   }
 
-  .site-header,
-  .footer {
-    flex-direction: column;
-    align-items: flex-start;
+  .track-no {
+    font-size: 0.72rem;
+    padding-top: 2px;
   }
 
-  .nav {
-    justify-content: flex-start;
+  .track-line {
+    font-size: 0.92rem;
+    line-height: 1.52;
+  }
+
+  .track-sep {
+    margin: 0 6px;
   }
 
   .track-head {
     grid-template-columns: 44px minmax(0, 1fr);
+    gap: 12px;
   }
 
   .track-play {
     grid-column: 2;
     justify-self: start;
-    margin-top: 8px;
+    font-size: 0.78rem;
+    margin-top: 7px;
+  }
+
+  .links-stack {
+    gap: 10px;
+  }
+
+  .link-row {
+    padding: 15px 14px;
+  }
+
+  .link-name {
+    font-size: 0.98rem;
   }
 }
 

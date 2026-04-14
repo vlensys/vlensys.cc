@@ -21,12 +21,15 @@
         <span class="brand-mark"></span>
         <span>vlensys</span>
       </a>
-      <nav class="nav">
-        <a class="chip" href="#play">play</a>
-        <a class="chip" href="#about">about</a>
-        <a class="chip" href="#music">music</a>
-        <a class="chip" href="#links">links</a>
-      </nav>
+      <div class="header-actions">
+        <nav class="nav">
+          <a class="chip" href="#play">play</a>
+          <a class="chip" href="#about">about</a>
+          <a class="chip" href="#music">music</a>
+          <a class="chip" href="#links">links</a>
+        </nav>
+        <button class="theme-toggle" type="button" aria-pressed="false" aria-label="switch to light mode">light</button>
+      </div>
     </header>
 
     <section class="hero" id="top">
@@ -40,6 +43,9 @@
 
       <div class="play-area reveal load-in" id="play" style="--delay:3;">
         <canvas id="field" aria-label="Ball physics playground"></canvas>
+        <div class="play-hud">
+          <button class="motion-button" type="button" hidden>enable motion</button>
+        </div>
       </div>
     </section>
 
@@ -113,11 +119,6 @@
         </a>
       </div>
     </section>
-
-    <footer class="footer reveal">
-      <span>made this myself</span>
-      <span>2026</span>
-    </footer>
   </main>
 
   <script defer src="dist/index.js"></script>

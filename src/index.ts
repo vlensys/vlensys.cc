@@ -180,6 +180,9 @@ if (!ctx) throw new Error("2D canvas context is unavailable.");
 
 const panel = canvas.parentElement;
 if (!(panel instanceof HTMLElement)) throw new Error("Canvas parent element is unavailable.");
+const motionButton = panel.querySelector<HTMLButtonElement>(".motion-button");
+const mobileCanvasQuery = window.matchMedia("(max-width: 920px)");
+let isMobileCanvas = mobileCanvasQuery.matches;
 
 const canUseCustomCursor = window.matchMedia("(pointer: fine)").matches && Boolean(cursorRing) && Boolean(cursorDot);
 
@@ -221,6 +224,13 @@ if (canUseCustomCursor && cursorRing && cursorDot) {
   window.requestAnimationFrame(animateCursor);
 }
 
+const state = {
+  width: 0,
+  height: 0,
+  dpr: Math.min(window.devicePixelRatio || 1, 2)
+};
+
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 type BallState = {
   x: number;
   y: number;
@@ -232,14 +242,6 @@ type BallState = {
   dragOffsetX: number;
   dragOffsetY: number;
 };
-
-const state = {
-  width: 0,
-  height: 0,
-  dpr: Math.min(window.devicePixelRatio || 1, 2)
-};
-
-const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
 const ball: BallState = {
   x: 0,
@@ -262,6 +264,63 @@ const resetBall = () => {
   ball.grabbed = false;
 };
 
+const tank = {
+  padding: 28,
+  width: 0,
+  height: 0,
+  x: 0,
+  y: 0
+};
+
+const tilt = {
+  current: 0,
+  target: 0
+};
+
+const slosh = {
+  phase: 0,
+  amplitude: 0
+};
+
+const supportsDeviceOrientation = "DeviceOrientationEvent" in window;
+
+const hasOrientationPermissionApi = typeof DeviceOrientationEvent !== "undefined"
+  && typeof (DeviceOrientationEvent as typeof DeviceOrientationEvent & {
+    requestPermission?: () => Promise<"granted" | "denied">;
+  }).requestPermission === "function";
+
+const applyTiltInput = (rawTilt: number) => {
+  tilt.target = clamp(rawTilt, -1, 1);
+};
+
+const handleOrientation = (event: DeviceOrientationEvent) => {
+  const gamma = typeof event.gamma === "number" ? event.gamma : 0;
+  applyTiltInput(gamma / 38);
+};
+
+const enableOrientationTracking = async () => {
+  if (!supportsDeviceOrientation) {
+    return;
+  }
+
+  if (hasOrientationPermissionApi) {
+    try {
+      const result = await (DeviceOrientationEvent as typeof DeviceOrientationEvent & {
+        requestPermission: () => Promise<"granted" | "denied">;
+      }).requestPermission();
+
+      if (result !== "granted") {
+        return;
+      }
+    } catch {
+      return;
+    }
+  }
+
+  window.addEventListener("deviceorientation", handleOrientation);
+  if (motionButton) motionButton.hidden = true;
+};
+
 const resizeCanvas = () => {
   const rect = panel.getBoundingClientRect();
   state.width = rect.width;
@@ -269,20 +328,55 @@ const resizeCanvas = () => {
   canvas.width = Math.floor(rect.width * state.dpr);
   canvas.height = Math.floor(rect.height * state.dpr);
   ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+  isMobileCanvas = mobileCanvasQuery.matches;
 
-  if (ball.x === 0 && ball.y === 0) resetBall();
-  if (!ball.grabbed) {
+  if (!isMobileCanvas && ball.x === 0 && ball.y === 0) resetBall();
+  if (!isMobileCanvas && !ball.grabbed) {
     ball.x = clamp(ball.x, ball.radius, Math.max(ball.radius, state.width - ball.radius));
     ball.y = clamp(ball.y, ball.radius, Math.max(ball.radius, state.height - ball.radius));
   }
+
+  tank.width = Math.max(220, state.width - tank.padding * 2);
+  tank.height = Math.max(180, state.height - tank.padding * 2);
+  tank.x = (state.width - tank.width) * 0.5;
+  tank.y = (state.height - tank.height) * 0.5;
+  if (motionButton) motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi;
 };
 
 resizeCanvas();
-resetBall();
 window.addEventListener("resize", resizeCanvas);
+mobileCanvasQuery.addEventListener("change", () => {
+  resizeCanvas();
+});
+
+if (motionButton) {
+  motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi;
+  motionButton.addEventListener("click", () => {
+    void enableOrientationTracking();
+  });
+}
+
+if (supportsDeviceOrientation && !hasOrientationPermissionApi) {
+  window.addEventListener("deviceorientation", handleOrientation);
+}
+
+canvas.addEventListener("pointermove", (event) => {
+  if (!isMobileCanvas) return;
+  if (supportsDeviceOrientation && !canUseCustomCursor) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  applyTiltInput(((x / Math.max(rect.width, 1)) - 0.5) * 1.8);
+});
+
+canvas.addEventListener("pointerleave", () => {
+  if (!isMobileCanvas) return;
+  if (!supportsDeviceOrientation) {
+    applyTiltInput(0);
+  }
+});
 
 canvas.addEventListener("pointerdown", (event) => {
-  if (event.button !== 0) return;
+  if (isMobileCanvas || event.button !== 0) return;
 
   const rect = canvas.getBoundingClientRect();
   const x = event.clientX - rect.left;
@@ -300,7 +394,7 @@ canvas.addEventListener("pointerdown", (event) => {
 });
 
 canvas.addEventListener("pointermove", (event) => {
-  if (!ball.grabbed) return;
+  if (isMobileCanvas || !ball.grabbed) return;
 
   const rect = canvas.getBoundingClientRect();
   const x = event.clientX - rect.left;
@@ -321,9 +415,32 @@ const releasePointer = (pointerId?: number) => {
   }
 };
 
-canvas.addEventListener("pointerup", (event) => releasePointer(event.pointerId));
-canvas.addEventListener("pointercancel", (event) => releasePointer(event.pointerId));
-canvas.addEventListener("pointerleave", () => releasePointer());
+canvas.addEventListener("pointerup", (event) => {
+  if (!isMobileCanvas) releasePointer(event.pointerId);
+});
+canvas.addEventListener("pointercancel", (event) => {
+  if (!isMobileCanvas) releasePointer(event.pointerId);
+});
+canvas.addEventListener("pointerleave", () => {
+  if (!isMobileCanvas) releasePointer();
+});
+
+const getWaveHeight = (x: number) => {
+  const normalizedX = x / Math.max(tank.width, 1);
+  const baseFill = tank.y + tank.height * 0.58;
+  const slope = tilt.current * tank.height * 0.18;
+  const centeredX = normalizedX - 0.5;
+  const wave = Math.sin(normalizedX * Math.PI * 2 + slosh.phase) * slosh.amplitude;
+  return clamp(baseFill + centeredX * slope + wave, tank.y + tank.height * 0.18, tank.y + tank.height * 0.9);
+};
+
+const updateWater = () => {
+  const delta = tilt.target - tilt.current;
+  tilt.current += delta * 0.075;
+  slosh.phase += 0.055 + Math.abs(tilt.current) * 0.05;
+  slosh.amplitude += (Math.abs(delta) * tank.height * 0.06 - slosh.amplitude) * 0.08;
+  slosh.amplitude *= reducedMotion ? 0.92 : 0.975;
+};
 
 const updateBall = () => {
   if (!ball.grabbed) {
@@ -361,7 +478,70 @@ const updateBall = () => {
   }
 };
 
-const drawBackdrop = () => {
+const drawWaterBackdrop = () => {
+  ctx.clearRect(0, 0, state.width, state.height);
+};
+
+const drawTank = () => {
+  const radius = 28;
+  const drawRoundedRectPath = () => {
+    ctx.beginPath();
+    ctx.moveTo(tank.x + radius, tank.y);
+    ctx.lineTo(tank.x + tank.width - radius, tank.y);
+    ctx.quadraticCurveTo(tank.x + tank.width, tank.y, tank.x + tank.width, tank.y + radius);
+    ctx.lineTo(tank.x + tank.width, tank.y + tank.height - radius);
+    ctx.quadraticCurveTo(tank.x + tank.width, tank.y + tank.height, tank.x + tank.width - radius, tank.y + tank.height);
+    ctx.lineTo(tank.x + radius, tank.y + tank.height);
+    ctx.quadraticCurveTo(tank.x, tank.y + tank.height, tank.x, tank.y + tank.height - radius);
+    ctx.lineTo(tank.x, tank.y + radius);
+    ctx.quadraticCurveTo(tank.x, tank.y, tank.x + radius, tank.y);
+    ctx.closePath();
+  };
+
+  ctx.save();
+  drawRoundedRectPath();
+  ctx.clip();
+
+  const waterGradient = ctx.createLinearGradient(0, tank.y, 0, tank.y + tank.height);
+  waterGradient.addColorStop(0, "rgba(255,255,255,0.28)");
+  waterGradient.addColorStop(0.08, "rgba(191, 234, 255, 0.32)");
+  waterGradient.addColorStop(0.4, "rgba(80, 172, 255, 0.36)");
+  waterGradient.addColorStop(1, "rgba(20, 70, 140, 0.82)");
+
+  ctx.beginPath();
+  ctx.moveTo(tank.x, tank.y + tank.height);
+
+  const waveSteps = 26;
+  for (let step = 0; step <= waveSteps; step += 1) {
+    const x = tank.x + (tank.width / waveSteps) * step;
+    ctx.lineTo(x, getWaveHeight(x - tank.x));
+  }
+
+  ctx.lineTo(tank.x + tank.width, tank.y + tank.height);
+  ctx.closePath();
+  ctx.fillStyle = waterGradient;
+  ctx.fill();
+
+  ctx.beginPath();
+  for (let step = 0; step <= waveSteps; step += 1) {
+    const x = tank.x + (tank.width / waveSteps) * step;
+    const y = getWaveHeight(x - tank.x);
+    if (step === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = "rgba(255,255,255,0.62)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.restore();
+
+  ctx.strokeStyle = "rgba(255,255,255,0.16)";
+  ctx.lineWidth = 1.2;
+  drawRoundedRectPath();
+  ctx.stroke();
+};
+
+const drawBallBackdrop = () => {
   ctx.clearRect(0, 0, state.width, state.height);
 
   const bandCount = 8;
@@ -400,9 +580,15 @@ const drawBall = () => {
 };
 
 const tick = () => {
-  drawBackdrop();
-  updateBall();
-  drawBall();
+  if (isMobileCanvas) {
+    drawWaterBackdrop();
+    updateWater();
+    drawTank();
+  } else {
+    drawBallBackdrop();
+    updateBall();
+    drawBall();
+  }
   window.requestAnimationFrame(tick);
 };
 

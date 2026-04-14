@@ -1,4 +1,4 @@
-// v1.0.11
+// v1.0.12
 const root = document.body;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const reveals = document.querySelectorAll<HTMLElement>(".reveal");
@@ -301,10 +301,8 @@ const resetBall = () => {
 };
 
 const resetWater = () => {
-  waterGravity.currentX = 0;
-  waterGravity.currentY = 1;
-  waterGravity.targetX = 0;
-  waterGravity.targetY = 1;
+  tilt.current = 0;
+  tilt.target = 0;
   slosh.phase = 0;
   slosh.amplitude = 0;
 };
@@ -317,11 +315,9 @@ const tank = {
   y: 0
 };
 
-const waterGravity = {
-  currentX: 0,
-  currentY: 1,
-  targetX: 0,
-  targetY: 1
+const tilt = {
+  current: 0,
+  target: 0
 };
 
 const slosh = {
@@ -336,23 +332,13 @@ const hasOrientationPermissionApi = typeof DeviceOrientationEvent !== "undefined
     requestPermission?: () => Promise<"granted" | "denied">;
   }).requestPermission === "function";
 
-const applyGravityInput = (rawX: number, rawY: number) => {
-  const x = clamp(rawX, -1, 1);
-  const y = clamp(rawY, -1, 1);
-  const length = Math.hypot(x, y) || 1;
-  waterGravity.targetX = x / length;
-  waterGravity.targetY = y / length;
+const applyTiltInput = (rawTilt: number) => {
+  tilt.target = clamp(rawTilt, -1, 1);
 };
 
 const handleOrientation = (event: DeviceOrientationEvent) => {
   const gamma = typeof event.gamma === "number" ? event.gamma : 0;
-  const beta = typeof event.beta === "number" ? event.beta : 0;
-  const gammaRad = gamma * (Math.PI / 180);
-  const betaRad = beta * (Math.PI / 180);
-  applyGravityInput(
-    Math.sin(gammaRad),
-    Math.cos(betaRad) * Math.cos(gammaRad)
-  );
+  applyTiltInput(gamma / 24);
 };
 
 const enableOrientationTracking = async () => {
@@ -393,7 +379,8 @@ const syncCanvasMode = () => {
   } else {
     resetBall();
     if (!supportsDeviceOrientation) {
-      resetWater();
+      tilt.current = 0;
+      tilt.target = 0;
     }
   }
 
@@ -445,17 +432,13 @@ canvas.addEventListener("pointermove", (event) => {
   if (supportsDeviceOrientation && !canUseCustomCursor) return;
   const rect = canvas.getBoundingClientRect();
   const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
-  applyGravityInput(
-    ((x / Math.max(rect.width, 1)) - 0.5) * 2,
-    ((y / Math.max(rect.height, 1)) - 0.5) * 2
-  );
+  applyTiltInput(((x / Math.max(rect.width, 1)) - 0.5) * 2.35);
 });
 
 canvas.addEventListener("pointerleave", () => {
   if (!isMobileCanvas) return;
   if (!supportsDeviceOrientation) {
-    resetWater();
+    applyTiltInput(0);
   }
 });
 
@@ -510,19 +493,11 @@ canvas.addEventListener("pointerleave", () => {
 });
 
 const updateWater = () => {
-  const deltaX = waterGravity.targetX - waterGravity.currentX;
-  const deltaY = waterGravity.targetY - waterGravity.currentY;
-  waterGravity.currentX += deltaX * 0.085;
-  waterGravity.currentY += deltaY * 0.085;
-
-  const currentLength = Math.hypot(waterGravity.currentX, waterGravity.currentY) || 1;
-  waterGravity.currentX /= currentLength;
-  waterGravity.currentY /= currentLength;
-
-  const forceDelta = Math.hypot(deltaX, deltaY);
-  slosh.phase += 0.05 + forceDelta * 0.35;
-  slosh.amplitude += (forceDelta * tank.height * 0.1 - slosh.amplitude) * 0.09;
-  slosh.amplitude *= reducedMotion ? 0.92 : 0.975;
+  const delta = tilt.target - tilt.current;
+  tilt.current += delta * 0.14;
+  slosh.phase += 0.08 + Math.abs(tilt.current) * 0.1;
+  slosh.amplitude += (Math.abs(delta) * tank.height * 0.12 - slosh.amplitude) * 0.16;
+  slosh.amplitude *= reducedMotion ? 0.9 : 0.965;
 };
 
 const updateBall = () => {
@@ -565,6 +540,21 @@ const drawWaterBackdrop = () => {
   ctx.clearRect(0, 0, state.width, state.height);
 };
 
+const getWaterSurfaceY = (x: number) => {
+  const normalizedX = (x - tank.x) / Math.max(tank.width, 1);
+  const baseFill = tank.y + tank.height * 0.58;
+  const slope = tilt.current * tank.height * 0.3;
+  const centeredX = normalizedX - 0.5;
+  const primaryWave = Math.sin(normalizedX * Math.PI * 2 + slosh.phase) * slosh.amplitude;
+  const secondaryWave = Math.sin(normalizedX * Math.PI * 5 - slosh.phase * 1.35) * (slosh.amplitude * 0.34);
+  const tertiaryWave = Math.cos(normalizedX * Math.PI * 8 + slosh.phase * 0.65) * (slosh.amplitude * 0.16);
+  return clamp(
+    baseFill + centeredX * slope + primaryWave + secondaryWave + tertiaryWave,
+    tank.y + tank.height * 0.16,
+    tank.y + tank.height * 0.92
+  );
+};
+
 const drawTank = () => {
   const radius = 28;
   const drawRoundedRectPath = () => {
@@ -585,43 +575,44 @@ const drawTank = () => {
   drawRoundedRectPath();
   ctx.clip();
 
-  const centerX = tank.x + tank.width * 0.5;
-  const centerY = tank.y + tank.height * 0.5;
-  const gravityAngle = Math.atan2(waterGravity.currentX, waterGravity.currentY);
-  const fillOffset = tank.height * 0.08;
-  const waveSpan = Math.max(tank.width, tank.height) * 1.8;
-  const waveSteps = 30;
-
   const waterGradient = ctx.createLinearGradient(0, tank.y, 0, tank.y + tank.height);
   waterGradient.addColorStop(0, "rgba(255,255,255,0.28)");
   waterGradient.addColorStop(0.08, "rgba(191, 234, 255, 0.32)");
   waterGradient.addColorStop(0.4, "rgba(80, 172, 255, 0.36)");
   waterGradient.addColorStop(1, "rgba(20, 70, 140, 0.82)");
 
-  ctx.translate(centerX, centerY);
-  ctx.rotate(gravityAngle);
   ctx.beginPath();
-  ctx.moveTo(-waveSpan, waveSpan);
-  ctx.lineTo(-waveSpan, fillOffset);
+  ctx.moveTo(tank.x, tank.y + tank.height);
+  const waveSteps = 26;
   for (let step = 0; step <= waveSteps; step += 1) {
-    const x = -waveSpan + (waveSpan * 2 / waveSteps) * step;
-    const wave = Math.sin((step / waveSteps) * Math.PI * 2 + slosh.phase) * slosh.amplitude;
-    ctx.lineTo(x, fillOffset + wave);
+    const x = tank.x + (tank.width / waveSteps) * step;
+    ctx.lineTo(x, getWaterSurfaceY(x));
   }
-  ctx.lineTo(waveSpan, waveSpan);
+  ctx.lineTo(tank.x + tank.width, tank.y + tank.height);
   ctx.closePath();
   ctx.fillStyle = waterGradient;
   ctx.fill();
 
   ctx.beginPath();
   for (let step = 0; step <= waveSteps; step += 1) {
-    const x = -waveSpan + (waveSpan * 2 / waveSteps) * step;
-    const y = fillOffset + Math.sin((step / waveSteps) * Math.PI * 2 + slosh.phase) * slosh.amplitude;
+    const x = tank.x + (tank.width / waveSteps) * step;
+    const y = getWaterSurfaceY(x);
     if (step === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
   ctx.strokeStyle = "rgba(255,255,255,0.62)";
   ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.beginPath();
+  for (let step = 0; step <= waveSteps; step += 1) {
+    const x = tank.x + (tank.width / waveSteps) * step;
+    const y = getWaterSurfaceY(x) + 6;
+    if (step === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = "rgba(255,255,255,0.12)";
+  ctx.lineWidth = 5;
   ctx.stroke();
 
   ctx.restore();

@@ -265,6 +265,7 @@ const state = {
 };
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+const isLightTheme = () => root.dataset.theme === "light";
 type BallState = {
   x: number;
   y: number;
@@ -601,6 +602,14 @@ const drawBall = () => {
   ctx.fillStyle = "#ffffff";
   ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
   ctx.fill();
+
+  if (isLightTheme()) {
+    ctx.beginPath();
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 1.5;
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.stroke();
+  }
 
   ctx.save();
   ctx.translate(ball.x, ball.y);

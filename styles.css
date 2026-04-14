@@ -23,9 +23,9 @@ body[data-theme="light"] {
   --fg: #111111;
   --panel: #f7f3ec;
   --panel-2: rgba(247, 243, 236, 0.86);
-  --soft: rgba(17, 17, 17, 0.08);
-  --soft-2: rgba(17, 17, 17, 0.18);
-  --soft-3: rgba(17, 17, 17, 0.42);
+  --soft: rgba(17, 17, 17, 0.14);
+  --soft-2: rgba(17, 17, 17, 0.26);
+  --soft-3: rgba(17, 17, 17, 0.5);
   --text-muted: rgba(17, 17, 17, 0.72);
   --text-soft: rgba(17, 17, 17, 0.68);
   --text-dim: rgba(17, 17, 17, 0.52);
@@ -738,6 +738,8 @@ body.cursor-down .cursor-ring {
   }
 
   #field {
+    border: 0;
+    background: transparent;
     min-height: 360px;
   }
 

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vlensys</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="cursor-ring" aria-hidden="true"></div>
+  <div class="cursor-dot" aria-hidden="true"></div>
+  <main class="page">
+    <header class="site-header reveal load-in" style="--delay:0;">
+      <a class="brand" href="#top" aria-label="Back to top">
+        <span class="brand-mark"></span>
+        <span>vlensys</span>
+      </a>
+      <nav class="nav">
+        <a class="chip" href="#play">Play</a>
+        <a class="chip" href="#about">About</a>
+        <a class="chip" href="#music">Music</a>
+        <a class="chip" href="#links">Links</a>
+      </nav>
+    </header>
+
+    <section class="hero" id="top">
+      <div class="hero-copy">
+        <h1 class="hero-title reveal load-in" style="--delay:1;">vlensys</h1>
+        <p class="hero-blurb reveal load-in" style="--delay:2;">i like music and hypixel</p>
+        <div class="hero-actions reveal load-in" style="--delay:4;">
+          <a class="button" href="#links">socials</a>
+        </div>
+      </div>
+
+      <div class="play-area reveal load-in" id="play" style="--delay:3;">
+        <canvas id="field" aria-label="Ball physics playground"></canvas>
+      </div>
+    </section>
+
+    <section class="about-section reveal" id="about">
+      <div class="section-tag">about</div>
+      <div class="about-copy">
+        <p>i make stuff that benefit me</p>
+        <p>like hyprbole and lyricspot</p>
+      </div>
+    </section>
+
+    <section class="music-section reveal" id="music">
+      <div class="section-tag">music that i like</div>
+      <div class="track-list">
+        <a class="track" href="https://open.spotify.com/search/yuragi%20i%20want%20you%20by%20my%20side" target="_blank" rel="noreferrer">
+          <span class="track-no">01</span>
+          <span class="track-main">
+            <span class="track-line"><span class="track-artist">yuragi</span><span class="track-sep">-</span><span class="track-title">i want you by my side</span></span>
+          </span>
+        </a>
+        <a class="track" href="https://open.spotify.com/search/kino%20pachka%20sigaret" target="_blank" rel="noreferrer">
+          <span class="track-no">02</span>
+          <span class="track-main">
+            <span class="track-line"><span class="track-artist">kino</span><span class="track-sep">-</span><span class="track-title">pachka sigaret</span></span>
+          </span>
+        </a>
+        <a class="track" href="https://open.spotify.com/search/buckshot%20backseat" target="_blank" rel="noreferrer">
+          <span class="track-no">03</span>
+          <span class="track-main">
+            <span class="track-line"><span class="track-artist">buckshot</span><span class="track-sep">-</span><span class="track-title">backseat</span></span>
+          </span>
+        </a>
+        <a class="track" href="https://open.spotify.com/search/what%20is%20your%20name%20you%20can't%20turn%20back%20time" target="_blank" rel="noreferrer">
+          <span class="track-no">04</span>
+          <span class="track-main">
+            <span class="track-line"><span class="track-artist">what is your name?</span><span class="track-sep">-</span><span class="track-title">you can't turn back time</span></span>
+          </span>
+        </a>
+      </div>
+    </section>
+
+    <section class="links-section reveal" id="links">
+      <div class="section-tag">findme</div>
+      <div class="links-stack">
+        <a class="link-row" href="https://github.com/vlensys" target="_blank" rel="noreferrer">
+          <span class="link-name">github</span>
+          <span class="link-value">vlensys</span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-row" href="https://discord.com/users/635404584302673933" target="_blank" rel="noreferrer">
+          <span class="link-name">discord</span>
+          <span class="link-value">vlanise</span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+        <a class="link-row" href="mailto:me@vlensys.cc">
+          <span class="link-name">email</span>
+          <span class="link-value">me@vlensys.cc</span>
+          <span class="link-arrow">&rarr;</span>
+        </a>
+      </div>
+    </section>
+
+    <footer class="footer reveal">
+      <span>made this myself</span>
+      <span>2026</span>
+    </footer>
+  </main>
+
+  <script defer src="dist/index.js"></script>
+</body>
+</html>

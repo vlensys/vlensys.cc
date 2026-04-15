@@ -321,6 +321,39 @@ body.cursor-down .cursor-ring {
   z-index: 3;
 }
 
+.game-mode-switcher {
+  display: inline-flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.game-mode-button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--panel-2);
+  color: rgba(255, 255, 255, 0.84);
+  font-family: var(--dm-sans);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  transition: border-color 180ms var(--ease), background 180ms var(--ease), color 180ms var(--ease);
+}
+
+.game-mode-button:hover,
+.game-mode-button:focus-visible {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: var(--surface-hover-strong);
+  color: var(--fg);
+  outline: none;
+}
+
+.game-mode-button.is-active {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
 .motion-button {
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: var(--panel-2);
@@ -350,7 +383,7 @@ body.cursor-down .cursor-ring {
   position: absolute;
   top: 0;
   left: 0;
-  width: min(280px, calc(100% - 24px));
+  width: min(360px, calc(100% - 24px));
   border: 1px solid var(--soft-2);
   background: rgba(3, 3, 3, 0.96);
   backdrop-filter: blur(10px);
@@ -419,13 +452,14 @@ body.cursor-down .cursor-ring {
 
 .browser-tabs {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
 .browser-tab,
 .browser-reset {
-  padding: 10px 12px;
+  min-width: 0;
+  padding: 10px 8px;
   border: 1px solid var(--soft);
   transition: border-color 160ms var(--ease), background 160ms var(--ease), color 160ms var(--ease);
 }

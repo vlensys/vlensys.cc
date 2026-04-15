@@ -42,6 +42,25 @@
 
       <div class="play-area reveal load-in" id="play" style="--delay:3;">
         <canvas id="field" aria-label="Ball physics playground"></canvas>
+        <div class="browser-window" id="game-browser" aria-hidden="true">
+          <div class="browser-bar">
+            <div class="browser-dots" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <span class="browser-title"></span>
+            <button class="browser-close" id="game-browser-close" type="button" aria-label="Close object browser">x</button>
+          </div>
+          <div class="browser-body">
+            <div class="browser-tabs">
+              <button class="browser-tab" data-object="ball" type="button">ball</button>
+              <button class="browser-tab" data-object="platform" type="button">platform</button>
+              <button class="browser-tab" data-object="trampoline" type="button">trampoline</button>
+            </div>
+            <button class="browser-reset" id="game-reset" type="button">reset</button>
+          </div>
+        </div>
         <div class="play-hud">
           <button class="motion-button" type="button" hidden>click me!!!!</button>
         </div>

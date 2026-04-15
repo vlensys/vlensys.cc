@@ -1,3 +1,4 @@
+// hi
 const root = document.body;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const reveals = document.querySelectorAll<HTMLElement>(".reveal");

@@ -273,15 +273,15 @@ body.cursor-down .cursor-ring {
   justify-content: center;
   min-height: 34px;
   padding: 0 0 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.86);
+  border-bottom: 1px solid var(--soft-2);
+  color: color-mix(in srgb, var(--fg) 86%, transparent);
   transition: color 200ms var(--ease), border-color 200ms var(--ease), transform 200ms var(--ease);
 }
 
 .button:hover,
 .button:focus-visible {
   color: var(--fg);
-  border-color: rgba(255, 255, 255, 0.72);
+  border-color: color-mix(in srgb, var(--fg) 72%, transparent);
 }
 
 .button:active {

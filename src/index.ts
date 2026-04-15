@@ -211,12 +211,32 @@ if (!ctx) throw new Error("2D canvas context is unavailable.");
 
 const panel = canvas.parentElement;
 if (!(panel instanceof HTMLElement)) throw new Error("Canvas parent element is unavailable.");
+const browser = panel.querySelector<HTMLDivElement>("#game-browser");
+const browserClose = panel.querySelector<HTMLButtonElement>("#game-browser-close");
+const browserReset = panel.querySelector<HTMLButtonElement>("#game-reset");
+const browserTitle = panel.querySelector<HTMLElement>(".browser-title");
+const objectButtons = Array.from(panel.querySelectorAll<HTMLButtonElement>("[data-object]"));
 
 const motionButton = panel.querySelector<HTMLButtonElement>(".motion-button");
 const mobileCanvasQuery = window.matchMedia("(max-width: 920px)");
 let isMobileCanvas = mobileCanvasQuery.matches;
 let motionPermissionAttempted = false;
 let motionTrackingEnabled = false;
+let browserOpen = false;
+let activeObject = "ball";
+
+const syncBrowserState = () => {
+  if (!browser) return;
+  browser.classList.toggle("is-open", browserOpen && !isMobileCanvas);
+  browser.setAttribute("aria-hidden", browserOpen && !isMobileCanvas ? "false" : "true");
+  if (browserTitle) browserTitle.textContent = activeObject;
+
+  objectButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.object === activeObject);
+  });
+};
+
+syncBrowserState();
 
 const canUseCustomCursor = window.matchMedia("(pointer: fine)").matches && Boolean(cursorRing) && Boolean(cursorDot);
 
@@ -378,6 +398,7 @@ const syncCanvasMode = () => {
 
   if (isMobileCanvas) {
     ball.grabbed = false;
+    browserOpen = false;
     resetWater();
   } else {
     resetBall();
@@ -385,6 +406,7 @@ const syncCanvasMode = () => {
   }
 
   if (motionButton) motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi || !motionPermissionAttempted || motionTrackingEnabled;
+  syncBrowserState();
 };
 
 const resizeCanvas = () => {
@@ -402,8 +424,9 @@ const resizeCanvas = () => {
     ball.y = clamp(ball.y, ball.radius, Math.max(ball.radius, state.height - ball.radius));
   }
 
-  tank.width = Math.max(220, state.width - tank.padding * 2);
-  tank.height = Math.max(180, state.height - tank.padding * 2);
+  const tankPadding = isMobileCanvas ? 42 : tank.padding;
+  tank.width = Math.max(220, state.width - tankPadding * 2);
+  tank.height = Math.max(180, state.height - tankPadding * 2);
   tank.x = (state.width - tank.width) * 0.5;
   tank.y = (state.height - tank.height) * 0.5;
 
@@ -415,6 +438,34 @@ window.addEventListener("resize", resizeCanvas);
 mobileCanvasQuery.addEventListener("change", () => {
   syncCanvasMode();
   resizeCanvas();
+});
+
+browserClose?.addEventListener("click", () => {
+  browserOpen = false;
+  syncBrowserState();
+});
+
+browserReset?.addEventListener("click", () => {
+  activeObject = "ball";
+  syncBrowserState();
+});
+
+objectButtons.forEach((button) => {
+  const objectType = button.dataset.object;
+  if (!objectType) return;
+
+  button.addEventListener("click", () => {
+    activeObject = objectType;
+    syncBrowserState();
+  });
+});
+
+panel.addEventListener("dblclick", (event) => {
+  if (isMobileCanvas) return;
+  const target = event.target as Element | null;
+  if (target?.closest(".browser-window") || target?.closest(".motion-button")) return;
+  browserOpen = true;
+  syncBrowserState();
 });
 
 if (motionButton) {

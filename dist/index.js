@@ -216,9 +216,9 @@ syncModeToResolution();
 window.addEventListener("resize", resizeCanvas);
 autoModeQuery.addEventListener("change", syncModeToResolution);
 canvas.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
     if (state.mode !== "ball")
         return;
-    event.preventDefault();
     const rect = canvas.getBoundingClientRect();
     openBrowser(event.clientX - rect.left, event.clientY - rect.top);
 });

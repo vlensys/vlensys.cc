@@ -256,8 +256,9 @@ const openBrowser = (x: number, y: number) => {
 };
 
 function closeBrowser() {
-  browser.classList.remove("is-open");
-  browser.setAttribute("aria-hidden", "true");
+  const browserEl = browser as HTMLDivElement;
+  browserEl.classList.remove("is-open");
+  browserEl.setAttribute("aria-hidden", "true");
   state.browserOpen = false;
 }
 
@@ -276,8 +277,8 @@ window.addEventListener("resize", resizeCanvas);
 autoModeQuery.addEventListener("change", syncModeToResolution);
 
 canvas.addEventListener("contextmenu", (event) => {
-  if (state.mode !== "ball") return;
   event.preventDefault();
+  if (state.mode !== "ball") return;
   const rect = canvas.getBoundingClientRect();
   openBrowser(event.clientX - rect.left, event.clientY - rect.top);
 });

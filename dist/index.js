@@ -1,3 +1,4 @@
+"use strict";
 const root = document.body;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const reveals = document.querySelectorAll(".reveal");
@@ -63,11 +64,10 @@ if (canUseCustomCursor && cursorRing && cursorDot) {
         window.requestAnimationFrame(animateCursor);
     };
     window.addEventListener("pointermove", (event) => {
-        var _a;
         cursorState.x = event.clientX;
         cursorState.y = event.clientY;
         root.classList.add("cursor-visible");
-        root.classList.toggle("cursor-hover", Boolean((_a = event.target) === null || _a === void 0 ? void 0 : _a.closest(interactiveSelector)));
+        root.classList.toggle("cursor-hover", Boolean(event.target?.closest(interactiveSelector)));
     });
     window.addEventListener("pointerdown", () => root.classList.add("cursor-down"));
     window.addEventListener("pointerup", () => root.classList.remove("cursor-down"));
@@ -197,8 +197,9 @@ const openBrowser = (x, y) => {
     state.browserOpen = true;
 };
 function closeBrowser() {
-    browser.classList.remove("is-open");
-    browser.setAttribute("aria-hidden", "true");
+    const browserEl = browser;
+    browserEl.classList.remove("is-open");
+    browserEl.setAttribute("aria-hidden", "true");
     state.browserOpen = false;
 }
 const spawnObject = (kind) => {
@@ -216,9 +217,9 @@ syncModeToResolution();
 window.addEventListener("resize", resizeCanvas);
 autoModeQuery.addEventListener("change", syncModeToResolution);
 canvas.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
     if (state.mode !== "ball")
         return;
-    event.preventDefault();
     const rect = canvas.getBoundingClientRect();
     openBrowser(event.clientX - rect.left, event.clientY - rect.top);
 });

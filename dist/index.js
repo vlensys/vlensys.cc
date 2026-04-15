@@ -180,6 +180,8 @@ if (!(panel instanceof HTMLElement))
 const motionButton = panel.querySelector(".motion-button");
 const mobileCanvasQuery = window.matchMedia("(max-width: 920px)");
 let isMobileCanvas = mobileCanvasQuery.matches;
+let motionPermissionAttempted = false;
+let motionTrackingEnabled = false;
 const canUseCustomCursor = window.matchMedia("(pointer: fine)").matches && Boolean(cursorRing) && Boolean(cursorDot);
 if (canUseCustomCursor && cursorRing && cursorDot) {
     root.classList.add("cursor-on");
@@ -272,17 +274,26 @@ const handleOrientation = (event) => {
 const enableOrientationTracking = async () => {
     if (!supportsDeviceOrientation)
         return;
+    if (motionTrackingEnabled)
+        return;
+    motionPermissionAttempted = true;
     if (hasOrientationPermissionApi) {
         try {
             const result = await DeviceOrientationEvent.requestPermission();
-            if (result !== "granted")
+            if (result !== "granted") {
+                if (motionButton)
+                    motionButton.hidden = false;
                 return;
+            }
         }
         catch {
+            if (motionButton)
+                motionButton.hidden = false;
             return;
         }
     }
     window.addEventListener("deviceorientation", handleOrientation);
+    motionTrackingEnabled = true;
     if (motionButton)
         motionButton.hidden = true;
 };
@@ -290,7 +301,7 @@ const syncCanvasMode = () => {
     const nextIsMobileCanvas = mobileCanvasQuery.matches;
     if (nextIsMobileCanvas === isMobileCanvas) {
         if (motionButton)
-            motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi;
+            motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi || !motionPermissionAttempted || motionTrackingEnabled;
         return;
     }
     isMobileCanvas = nextIsMobileCanvas;
@@ -304,7 +315,7 @@ const syncCanvasMode = () => {
             resetWater();
     }
     if (motionButton)
-        motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi;
+        motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi || !motionPermissionAttempted || motionTrackingEnabled;
 };
 const resizeCanvas = () => {
     const rect = panel.getBoundingClientRect();
@@ -325,7 +336,7 @@ const resizeCanvas = () => {
     tank.x = (state.width - tank.width) * 0.5;
     tank.y = (state.height - tank.height) * 0.5;
     if (motionButton)
-        motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi;
+        motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi || !motionPermissionAttempted || motionTrackingEnabled;
 };
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
@@ -334,14 +345,21 @@ mobileCanvasQuery.addEventListener("change", () => {
     resizeCanvas();
 });
 if (motionButton) {
-    motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi;
+    motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi || !motionPermissionAttempted || motionTrackingEnabled;
     motionButton.addEventListener("click", () => {
         void enableOrientationTracking();
     });
 }
 if (supportsDeviceOrientation && !hasOrientationPermissionApi) {
     window.addEventListener("deviceorientation", handleOrientation);
+    motionTrackingEnabled = true;
 }
+const requestMotionOnFirstMobileGesture = () => {
+    if (!isMobileCanvas || !hasOrientationPermissionApi || motionTrackingEnabled || motionPermissionAttempted)
+        return;
+    void enableOrientationTracking();
+};
+window.addEventListener("pointerdown", requestMotionOnFirstMobileGesture, { passive: true });
 canvas.addEventListener("pointermove", (event) => {
     if (!isMobileCanvas)
         return;

@@ -211,32 +211,18 @@ if (!ctx) throw new Error("2D canvas context is unavailable.");
 
 const panel = canvas.parentElement;
 if (!(panel instanceof HTMLElement)) throw new Error("Canvas parent element is unavailable.");
+
 const browser = panel.querySelector<HTMLDivElement>("#game-browser");
 const browserClose = panel.querySelector<HTMLButtonElement>("#game-browser-close");
 const browserReset = panel.querySelector<HTMLButtonElement>("#game-reset");
 const browserTitle = panel.querySelector<HTMLElement>(".browser-title");
 const objectButtons = Array.from(panel.querySelectorAll<HTMLButtonElement>("[data-object]"));
-
 const motionButton = panel.querySelector<HTMLButtonElement>(".motion-button");
-const mobileCanvasQuery = window.matchMedia("(max-width: 920px)");
-let isMobileCanvas = mobileCanvasQuery.matches;
-let motionPermissionAttempted = false;
-let motionTrackingEnabled = false;
-let browserOpen = false;
-let activeObject = "ball";
+const autoModeQuery = window.matchMedia("(max-width: 920px)");
 
-const syncBrowserState = () => {
-  if (!browser) return;
-  browser.classList.toggle("is-open", browserOpen && !isMobileCanvas);
-  browser.setAttribute("aria-hidden", browserOpen && !isMobileCanvas ? "false" : "true");
-  if (browserTitle) browserTitle.textContent = activeObject;
-
-  objectButtons.forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.object === activeObject);
-  });
-};
-
-syncBrowserState();
+if (!(browser instanceof HTMLDivElement)) throw new Error("Browser element #game-browser was not found.");
+if (!(browserClose instanceof HTMLButtonElement)) throw new Error("Close button was not found.");
+if (!(browserReset instanceof HTMLButtonElement)) throw new Error("Reset button was not found.");
 
 const canUseCustomCursor = window.matchMedia("(pointer: fine)").matches && Boolean(cursorRing) && Boolean(cursorDot);
 
@@ -252,7 +238,7 @@ if (canUseCustomCursor && cursorRing && cursorDot) {
     dotY: window.innerHeight * 0.5
   };
 
-  const interactiveSelector = "a, button, #field, .chip, .button, .link-row";
+  const interactiveSelector = "a, button, #field, .chip, .button, .link-row, .browser-window";
 
   const animateCursor = () => {
     cursorState.ringX += (cursorState.x - cursorState.ringX) * 0.68;
@@ -278,46 +264,97 @@ if (canUseCustomCursor && cursorRing && cursorDot) {
   window.requestAnimationFrame(animateCursor);
 }
 
-const state = {
-  width: 0,
-  height: 0,
-  dpr: Math.min(window.devicePixelRatio || 1, 2)
-};
+type Mode = "ball" | "water";
+type DragMode = "move" | "rotate" | null;
 
-const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
-const isLightTheme = () => root.dataset.theme === "light";
-
-type BallState = {
+type BaseItem = {
   x: number;
   y: number;
+  angle: number;
+  grabbed: boolean;
+  dragMode: DragMode;
+  dragOffsetX: number;
+  dragOffsetY: number;
+  rotateOffset: number;
+};
+
+type Ball = BaseItem & {
+  kind: "ball";
   vx: number;
   vy: number;
   radius: number;
-  angle: number;
-  grabbed: boolean;
-  dragOffsetX: number;
-  dragOffsetY: number;
 };
 
-const ball: BallState = {
-  x: 0,
-  y: 0,
-  vx: 0,
-  vy: 0,
-  radius: 30,
+type Platform = BaseItem & {
+  kind: "platform";
+  width: number;
+  height: number;
+};
+
+type Trampoline = BaseItem & {
+  kind: "trampoline";
+  width: number;
+  height: number;
+};
+
+type Item = Ball | Platform | Trampoline;
+
+const state = {
+  width: 0,
+  height: 0,
+  dpr: Math.min(window.devicePixelRatio || 1, 2),
+  browserOpen: false,
+  browserX: 0,
+  browserY: 0,
+  mode: "ball" as Mode
+};
+
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+const rotatePoint = (x: number, y: number, angle: number) => ({
+  x: x * Math.cos(angle) - y * Math.sin(angle),
+  y: x * Math.sin(angle) + y * Math.cos(angle)
+});
+const toLocal = (item: Item, x: number, y: number) => rotatePoint(x - item.x, y - item.y, -item.angle);
+const isLightTheme = () => root.dataset.theme === "light";
+
+const createBaseItem = (x: number, y: number): BaseItem => ({
+  x,
+  y,
   angle: 0,
   grabbed: false,
+  dragMode: null,
   dragOffsetX: 0,
-  dragOffsetY: 0
-};
+  dragOffsetY: 0,
+  rotateOffset: 0
+});
 
-const resetBall = () => {
-  ball.x = state.width * 0.5;
-  ball.y = state.height * 0.18;
-  ball.vx = 1.1;
-  ball.vy = 0;
-  ball.angle = 0;
-  ball.grabbed = false;
+const createBall = (x: number, y: number): Ball => ({
+  ...createBaseItem(x, y),
+  kind: "ball",
+  vx: (Math.random() - 0.5) * 1.2,
+  vy: 0,
+  radius: 28
+});
+
+const createPlatform = (x: number, y: number): Platform => ({
+  ...createBaseItem(x, y),
+  kind: "platform",
+  width: 190,
+  height: 18
+});
+
+const createTrampoline = (x: number, y: number): Trampoline => ({
+  ...createBaseItem(x, y),
+  kind: "trampoline",
+  width: 130,
+  height: 16
+});
+
+const items: Item[] = [];
+
+const resetBallScene = () => {
+  items.length = 0;
+  items.push(createBall(state.width * 0.5, state.height * 0.18));
 };
 
 const tank = {
@@ -359,7 +396,6 @@ const handleOrientation = (event: DeviceOrientationEvent) => {
   const gamma = typeof event.gamma === "number" ? event.gamma : 0;
   applyTiltInput(gamma / 24);
 };
-
 const enableOrientationTracking = async () => {
   if (!supportsDeviceOrientation) return;
   if (motionTrackingEnabled) return;
@@ -387,26 +423,50 @@ const enableOrientationTracking = async () => {
   if (motionButton) motionButton.hidden = true;
 };
 
-const syncCanvasMode = () => {
-  const nextIsMobileCanvas = mobileCanvasQuery.matches;
-  if (nextIsMobileCanvas === isMobileCanvas) {
-    if (motionButton) motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi || !motionPermissionAttempted || motionTrackingEnabled;
+let motionPermissionAttempted = false;
+let motionTrackingEnabled = false;
+
+const syncMotionUi = () => {
+  if (!motionButton) return;
+  motionButton.hidden = state.mode !== "water" || !hasOrientationPermissionApi || !motionPermissionAttempted || motionTrackingEnabled;
+};
+
+const updateBrowserUi = () => {
+  browser.classList.toggle("is-open", state.browserOpen && state.mode === "ball");
+  browser.setAttribute("aria-hidden", state.browserOpen && state.mode === "ball" ? "false" : "true");
+  if (browserTitle) browserTitle.textContent = state.mode === "ball" ? "object browser" : "";
+};
+
+const resetCurrentMode = () => {
+  if (state.mode === "ball") resetBallScene();
+  else resetWater();
+};
+
+const updateModeUi = () => {
+  canvas.setAttribute("aria-label", state.mode === "ball" ? "Ball physics playground" : "Water physics playground");
+  updateBrowserUi();
+  syncMotionUi();
+};
+
+function closeBrowser() {
+  state.browserOpen = false;
+  updateBrowserUi();
+}
+
+const setMode = (mode: Mode) => {
+  if (state.mode === mode) {
+    updateModeUi();
     return;
   }
 
-  isMobileCanvas = nextIsMobileCanvas;
+  state.mode = mode;
+  closeBrowser();
+  resetCurrentMode();
+  updateModeUi();
+};
 
-  if (isMobileCanvas) {
-    ball.grabbed = false;
-    browserOpen = false;
-    resetWater();
-  } else {
-    resetBall();
-    if (!supportsDeviceOrientation) resetWater();
-  }
-
-  if (motionButton) motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi || !motionPermissionAttempted || motionTrackingEnabled;
-  syncBrowserState();
+const syncModeToResolution = () => {
+  setMode(autoModeQuery.matches ? "water" : "ball");
 };
 
 const resizeCanvas = () => {
@@ -416,60 +476,65 @@ const resizeCanvas = () => {
   canvas.width = Math.floor(rect.width * state.dpr);
   canvas.height = Math.floor(rect.height * state.dpr);
   ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
-  syncCanvasMode();
 
-  if (!isMobileCanvas && ball.x === 0 && ball.y === 0) resetBall();
-  if (!isMobileCanvas && !ball.grabbed) {
-    ball.x = clamp(ball.x, ball.radius, Math.max(ball.radius, state.width - ball.radius));
-    ball.y = clamp(ball.y, ball.radius, Math.max(ball.radius, state.height - ball.radius));
-  }
-
-  const tankPadding = isMobileCanvas ? 42 : tank.padding;
+  const tankPadding = state.mode === "water" ? 42 : tank.padding;
   tank.width = Math.max(220, state.width - tankPadding * 2);
   tank.height = Math.max(180, state.height - tankPadding * 2);
   tank.x = (state.width - tank.width) * 0.5;
   tank.y = (state.height - tank.height) * 0.5;
 
-  if (motionButton) motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi || !motionPermissionAttempted || motionTrackingEnabled;
+  if (state.mode === "ball" && items.length === 0) resetBallScene();
+  updateModeUi();
+};
+
+const positionBrowser = (x: number, y: number) => {
+  const width = 320;
+  const height = 170;
+  state.browserX = clamp(x, 12, Math.max(state.width - width - 12, 12));
+  state.browserY = clamp(y, 12, Math.max(state.height - height - 12, 12));
+  browser.style.left = `${state.browserX}px`;
+  browser.style.top = `${state.browserY}px`;
+};
+
+const openBrowser = (x: number, y: number) => {
+  if (state.mode !== "ball") return;
+  positionBrowser(x, y);
+  state.browserOpen = true;
+  updateBrowserUi();
+};
+
+const spawnObject = (kind: string) => {
+  const x = clamp(state.browserX + 140, 70, state.width - 70);
+  const y = clamp(state.browserY + 120, 70, state.height - 70);
+
+  if (kind === "ball") items.push(createBall(x, y));
+  if (kind === "platform") items.push(createPlatform(x, y));
+  if (kind === "trampoline") items.push(createTrampoline(x, y));
 };
 
 resizeCanvas();
+syncModeToResolution();
 window.addEventListener("resize", resizeCanvas);
-mobileCanvasQuery.addEventListener("change", () => {
-  syncCanvasMode();
+autoModeQuery.addEventListener("change", () => {
+  syncModeToResolution();
   resizeCanvas();
 });
 
-browserClose?.addEventListener("click", () => {
-  browserOpen = false;
-  syncBrowserState();
-});
-
-browserReset?.addEventListener("click", () => {
-  activeObject = "ball";
-  syncBrowserState();
+browserClose.addEventListener("click", closeBrowser);
+browserReset.addEventListener("click", () => {
+  resetCurrentMode();
+  closeBrowser();
 });
 
 objectButtons.forEach((button) => {
-  const objectType = button.dataset.object;
-  if (!objectType) return;
-
   button.addEventListener("click", () => {
-    activeObject = objectType;
-    syncBrowserState();
+    spawnObject(button.dataset.object || "");
+    closeBrowser();
   });
 });
 
-panel.addEventListener("dblclick", (event) => {
-  if (isMobileCanvas) return;
-  const target = event.target as Element | null;
-  if (target?.closest(".browser-window") || target?.closest(".motion-button")) return;
-  browserOpen = true;
-  syncBrowserState();
-});
-
 if (motionButton) {
-  motionButton.hidden = !isMobileCanvas || !hasOrientationPermissionApi || !motionPermissionAttempted || motionTrackingEnabled;
+  syncMotionUi();
   motionButton.addEventListener("click", () => {
     void enableOrientationTracking();
   });
@@ -478,80 +543,254 @@ if (motionButton) {
 if (supportsDeviceOrientation && !hasOrientationPermissionApi) {
   window.addEventListener("deviceorientation", handleOrientation);
   motionTrackingEnabled = true;
+  syncMotionUi();
 }
 
 const requestMotionOnFirstMobileGesture = () => {
-  if (!isMobileCanvas || !hasOrientationPermissionApi || motionTrackingEnabled || motionPermissionAttempted) return;
+  if (state.mode !== "water" || !hasOrientationPermissionApi || motionTrackingEnabled || motionPermissionAttempted) return;
   void enableOrientationTracking();
 };
 
 window.addEventListener("pointerdown", requestMotionOnFirstMobileGesture, { passive: true });
+window.addEventListener("pointerdown", (event) => {
+  if (state.browserOpen && !browser.contains(event.target as Node) && event.target !== canvas) closeBrowser();
+});
 
-canvas.addEventListener("pointermove", (event) => {
-  if (!isMobileCanvas) return;
-  if (supportsDeviceOrientation && !canUseCustomCursor) return;
+canvas.addEventListener("contextmenu", (event) => {
+  event.preventDefault();
+  if (state.mode !== "ball") return;
+  const rect = canvas.getBoundingClientRect();
+  openBrowser(event.clientX - rect.left, event.clientY - rect.top);
+});
+
+panel.addEventListener("dblclick", (event) => {
+  if (state.mode !== "ball") return;
+  const target = event.target as Element | null;
+  if (target?.closest(".browser-window") || target?.closest(".motion-button")) return;
+  const rect = canvas.getBoundingClientRect();
+  openBrowser(event.clientX - rect.left, event.clientY - rect.top);
+});
+
+const hitBall = (item: Ball, x: number, y: number) => Math.hypot(x - item.x, y - item.y) <= item.radius + 10;
+const hitRect = (item: Platform | Trampoline, x: number, y: number) => {
+  const local = toLocal(item, x, y);
+  return Math.abs(local.x) <= item.width * 0.5 && Math.abs(local.y) <= item.height * 0.5 + 10;
+};
+
+canvas.addEventListener("pointerdown", (event) => {
+  if (event.button !== 0) return;
 
   const rect = canvas.getBoundingClientRect();
   const x = event.clientX - rect.left;
-  applyTiltInput(((x / Math.max(rect.width, 1)) - 0.5) * 2.35);
+  const y = event.clientY - rect.top;
+
+  if (state.mode === "water") {
+    applyTiltInput(((x / Math.max(rect.width, 1)) - 0.5) * 2.35);
+    return;
+  }
+
+  closeBrowser();
+
+  for (let i = items.length - 1; i >= 0; i -= 1) {
+    const item = items[i];
+    const hit = item.kind === "ball" ? hitBall(item, x, y) : hitRect(item, x, y);
+    if (!hit) continue;
+
+    item.grabbed = true;
+
+    if (item.kind === "ball") {
+      item.dragMode = "move";
+      item.dragOffsetX = x - item.x;
+      item.dragOffsetY = y - item.y;
+      item.vx = 0;
+      item.vy = 0;
+    } else {
+      const local = toLocal(item, x, y);
+      if (Math.abs(local.x) >= item.width * 0.34) {
+        item.dragMode = "rotate";
+        item.rotateOffset = Math.atan2(y - item.y, x - item.x) - item.angle;
+      } else {
+        item.dragMode = "move";
+        item.dragOffsetX = x - item.x;
+        item.dragOffsetY = y - item.y;
+      }
+    }
+
+    const lifted = items.splice(i, 1)[0];
+    items.push(lifted);
+    canvas.setPointerCapture(event.pointerId);
+    break;
+  }
+});
+
+canvas.addEventListener("pointermove", (event) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+
+  if (state.mode === "water") {
+    if (supportsDeviceOrientation && motionTrackingEnabled) return;
+    applyTiltInput(((x / Math.max(rect.width, 1)) - 0.5) * 2.35);
+    return;
+  }
+
+  for (const item of items) {
+    if (!item.grabbed) continue;
+
+    if (item.dragMode === "rotate") {
+      item.angle = Math.atan2(y - item.y, x - item.x) - item.rotateOffset;
+      continue;
+    }
+
+    const nextX = x - item.dragOffsetX;
+    const nextY = y - item.dragOffsetY;
+
+    if (item.kind === "ball") {
+      item.vx = nextX - item.x;
+      item.vy = nextY - item.y;
+    }
+
+    item.x = nextX;
+    item.y = nextY;
+  }
 });
 
 canvas.addEventListener("pointerleave", () => {
-  if (!isMobileCanvas) return;
-  if (!supportsDeviceOrientation) {
-    applyTiltInput(0);
-  }
+  if (state.mode === "water" && !motionTrackingEnabled) applyTiltInput(0);
 });
 
-canvas.addEventListener("pointerdown", (event) => {
-  if (isMobileCanvas || event.button !== 0) return;
-
-  const rect = canvas.getBoundingClientRect();
-  const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
-  const distance = Math.hypot(x - ball.x, y - ball.y);
-
-  if (distance <= ball.radius + 12) {
-    ball.grabbed = true;
-    ball.dragOffsetX = x - ball.x;
-    ball.dragOffsetY = y - ball.y;
-    ball.vx = 0;
-    ball.vy = 0;
-    canvas.setPointerCapture(event.pointerId);
-  }
-});
-
-canvas.addEventListener("pointermove", (event) => {
-  if (isMobileCanvas || !ball.grabbed) return;
-
-  const rect = canvas.getBoundingClientRect();
-  const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
-  const nextX = clamp(x - ball.dragOffsetX, ball.radius, state.width - ball.radius);
-  const nextY = clamp(y - ball.dragOffsetY, ball.radius, state.height - ball.radius);
-  ball.vx = nextX - ball.x;
-  ball.vy = nextY - ball.y;
-  ball.x = nextX;
-  ball.y = nextY;
-});
-
-const releasePointer = (pointerId?: number) => {
-  ball.grabbed = false;
+const releaseItems = (pointerId?: number) => {
+  items.forEach((item) => {
+    item.grabbed = false;
+    item.dragMode = null;
+  });
 
   if (typeof pointerId === "number" && canvas.hasPointerCapture(pointerId)) {
     canvas.releasePointerCapture(pointerId);
   }
 };
 
-canvas.addEventListener("pointerup", (event) => {
-  if (!isMobileCanvas) releasePointer(event.pointerId);
-});
-canvas.addEventListener("pointercancel", (event) => {
-  if (!isMobileCanvas) releasePointer(event.pointerId);
-});
-canvas.addEventListener("pointerleave", () => {
-  if (!isMobileCanvas) releasePointer();
-});
+canvas.addEventListener("pointerup", (event) => releaseItems(event.pointerId));
+canvas.addEventListener("pointercancel", (event) => releaseItems(event.pointerId));
+
+const resolveBallCollision = (a: Ball, b: Ball) => {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const distance = Math.hypot(dx, dy) || 0.001;
+  const minDistance = a.radius + b.radius;
+  if (distance >= minDistance) return;
+
+  const nx = dx / distance;
+  const ny = dy / distance;
+  const overlap = (minDistance - distance) * 0.5;
+  a.x -= nx * overlap;
+  a.y -= ny * overlap;
+  b.x += nx * overlap;
+  b.y += ny * overlap;
+
+  const rvx = b.vx - a.vx;
+  const rvy = b.vy - a.vy;
+  const velocityAlongNormal = rvx * nx + rvy * ny;
+  if (velocityAlongNormal > 0) return;
+
+  const restitution = 0.88;
+  const impulse = -(1 + restitution) * velocityAlongNormal / 2;
+  a.vx -= impulse * nx;
+  a.vy -= impulse * ny;
+  b.vx += impulse * nx;
+  b.vy += impulse * ny;
+};
+
+const collideBallWithRect = (ball: Ball, item: Platform | Trampoline, bounce: number) => {
+  const local = toLocal(item, ball.x, ball.y);
+  const halfW = item.width * 0.5;
+  const halfH = item.height * 0.5;
+  const clampedX = clamp(local.x, -halfW, halfW);
+  const clampedY = clamp(local.y, -halfH, halfH);
+  const dx = local.x - clampedX;
+  const dy = local.y - clampedY;
+  const distance = Math.hypot(dx, dy);
+
+  if (distance >= ball.radius) return;
+
+  let nx = 0;
+  let ny = 0;
+  let push = 0;
+
+  if (distance > 0.001) {
+    nx = dx / distance;
+    ny = dy / distance;
+    push = ball.radius - distance;
+  } else {
+    const penLeft = Math.abs(local.x + halfW);
+    const penRight = Math.abs(halfW - local.x);
+    const penTop = Math.abs(local.y + halfH);
+    const penBottom = Math.abs(halfH - local.y);
+    const minPen = Math.min(penLeft, penRight, penTop, penBottom);
+
+    if (minPen === penLeft) nx = -1;
+    else if (minPen === penRight) nx = 1;
+    else if (minPen === penTop) ny = -1;
+    else ny = 1;
+
+    push = ball.radius + minPen;
+  }
+
+  const worldNormal = rotatePoint(nx, ny, item.angle);
+  ball.x += worldNormal.x * push;
+  ball.y += worldNormal.y * push;
+
+  const velocityAlongNormal = ball.vx * worldNormal.x + ball.vy * worldNormal.y;
+  if (velocityAlongNormal < 0) {
+    ball.vx -= (1 + bounce) * velocityAlongNormal * worldNormal.x;
+    ball.vy -= (1 + bounce) * velocityAlongNormal * worldNormal.y;
+  }
+};
+
+const updateBallItem = (ball: Ball) => {
+  const steps = ball.grabbed ? 1 : 5;
+  const gravity = (reducedMotion ? 0.18 : 0.34) / steps;
+  const platforms = items.filter((item): item is Platform => item.kind === "platform");
+  const trampolines = items.filter((item): item is Trampoline => item.kind === "trampoline");
+
+  for (let step = 0; step < steps; step += 1) {
+    if (!ball.grabbed) {
+      ball.vy += gravity;
+      ball.x += ball.vx / steps;
+      ball.y += ball.vy / steps;
+    }
+
+    if (ball.x < ball.radius) {
+      ball.x = ball.radius;
+      ball.vx *= -0.92;
+    }
+
+    if (ball.x > state.width - ball.radius) {
+      ball.x = state.width - ball.radius;
+      ball.vx *= -0.92;
+    }
+
+    if (ball.y < ball.radius) {
+      ball.y = ball.radius;
+      ball.vy *= -0.82;
+    }
+
+    for (const platform of platforms) collideBallWithRect(ball, platform, 0.72);
+    for (const trampoline of trampolines) collideBallWithRect(ball, trampoline, 1.22);
+
+    if (ball.y > state.height - ball.radius) {
+      ball.y = state.height - ball.radius;
+      ball.vy *= -0.78;
+      ball.vx *= 0.986;
+    }
+  }
+
+  if (!ball.grabbed) {
+    ball.vx *= 0.996;
+    ball.vy *= 0.995;
+    ball.angle += ball.vx * 0.024;
+  }
+};
 
 const updateWater = () => {
   const delta = tilt.target - tilt.current;
@@ -561,44 +800,20 @@ const updateWater = () => {
   slosh.amplitude *= reducedMotion ? 0.9 : 0.965;
 };
 
-const updateBall = () => {
-  if (!ball.grabbed) {
-    const gravity = reducedMotion ? 0.32 : 0.56;
-    ball.vy += gravity;
-    ball.x += ball.vx;
-    ball.y += ball.vy;
-  }
-
-  if (ball.x < ball.radius) {
-    ball.x = ball.radius;
-    ball.vx *= -0.92;
-  }
-
-  if (ball.x > state.width - ball.radius) {
-    ball.x = state.width - ball.radius;
-    ball.vx *= -0.92;
-  }
-
-  if (ball.y < ball.radius) {
-    ball.y = ball.radius;
-    ball.vy *= -0.82;
-  }
-
-  if (ball.y > state.height - ball.radius) {
-    ball.y = state.height - ball.radius;
-    ball.vy *= -0.8;
-    ball.vx *= 0.986;
-  }
-
-  if (!ball.grabbed) {
-    ball.vx *= 0.995;
-    ball.vy *= 0.994;
-    ball.angle += ball.vx * 0.022;
-  }
-};
-
-const drawWaterBackdrop = () => {
+const drawBallBackdrop = () => {
   ctx.clearRect(0, 0, state.width, state.height);
+  const anchorBall = items.find((item): item is Ball => item.kind === "ball") || createBall(state.width * 0.5, state.height * 0.5);
+  const bandCount = 8;
+  const pull = ((anchorBall.x - state.width * 0.5) / Math.max(state.width, 1)) * 24;
+
+  for (let i = 0; i < bandCount; i += 1) {
+    const y = ((i + 1) / (bandCount + 1)) * state.height;
+    ctx.beginPath();
+    ctx.strokeStyle = i % 2 === 0 ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.06)";
+    ctx.moveTo(0, y);
+    ctx.bezierCurveTo(state.width * 0.25, y + pull * 0.18, state.width * 0.75, y - pull * 0.18, state.width, y);
+    ctx.stroke();
+  }
 };
 
 const getWaterSurfaceY = (x: number) => {
@@ -615,10 +830,13 @@ const getWaterSurfaceY = (x: number) => {
     tank.y + tank.height * 0.92
   );
 };
+const drawWater = () => {
+  ctx.clearRect(0, 0, state.width, state.height);
 
-const drawTank = () => {
   const radius = 28;
-  const drawRoundedRectPath = () => {
+  const waveSteps = 26;
+
+  const roundedPath = () => {
     ctx.beginPath();
     ctx.moveTo(tank.x + radius, tank.y);
     ctx.lineTo(tank.x + tank.width - radius, tank.y);
@@ -633,18 +851,17 @@ const drawTank = () => {
   };
 
   ctx.save();
-  drawRoundedRectPath();
+  roundedPath();
   ctx.clip();
 
   const waterGradient = ctx.createLinearGradient(0, tank.y, 0, tank.y + tank.height);
   waterGradient.addColorStop(0, "rgba(255,255,255,0.28)");
-  waterGradient.addColorStop(0.08, "rgba(191, 234, 255, 0.32)");
-  waterGradient.addColorStop(0.4, "rgba(80, 172, 255, 0.36)");
-  waterGradient.addColorStop(1, "rgba(20, 70, 140, 0.82)");
+  waterGradient.addColorStop(0.08, "rgba(191,234,255,0.32)");
+  waterGradient.addColorStop(0.4, "rgba(80,172,255,0.36)");
+  waterGradient.addColorStop(1, "rgba(20,70,140,0.82)");
 
   ctx.beginPath();
   ctx.moveTo(tank.x, tank.y + tank.height);
-  const waveSteps = 26;
   for (let step = 0; step <= waveSteps; step += 1) {
     const x = tank.x + (tank.width / waveSteps) * step;
     ctx.lineTo(x, getWaterSurfaceY(x));
@@ -678,67 +895,90 @@ const drawTank = () => {
 
   ctx.restore();
 
-  ctx.strokeStyle = "rgba(255,255,255,0.16)";
+  roundedPath();
+  ctx.strokeStyle = isLightTheme() ? "rgba(0,0,0,0.22)" : "rgba(255,255,255,0.16)";
   ctx.lineWidth = 1.2;
-  drawRoundedRectPath();
   ctx.stroke();
 };
 
-const drawBallBackdrop = () => {
-  ctx.clearRect(0, 0, state.width, state.height);
-
-  const bandCount = 8;
-  const pull = ((ball.x - state.width * 0.5) / Math.max(state.width, 1)) * 24;
-
-  for (let i = 0; i < bandCount; i += 1) {
-    const y = ((i + 1) / (bandCount + 1)) * state.height;
-    ctx.beginPath();
-    ctx.strokeStyle = i % 2 === 0 ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.06)";
-    ctx.moveTo(0, y);
-    ctx.bezierCurveTo(state.width * 0.25, y + pull * 0.18, state.width * 0.75, y - pull * 0.18, state.width, y);
-    ctx.stroke();
+const drawItem = (item: Item) => {
+  if (item.kind === "platform") {
+    ctx.save();
+    ctx.translate(item.x, item.y);
+    ctx.rotate(item.angle);
+    ctx.fillStyle = isLightTheme() ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.16)";
+    ctx.fillRect(-item.width * 0.5, -item.height * 0.5, item.width, item.height);
+    ctx.strokeStyle = isLightTheme() ? "rgba(0,0,0,0.22)" : "rgba(255,255,255,0.12)";
+    ctx.strokeRect(-item.width * 0.5, -item.height * 0.5, item.width, item.height);
+    ctx.restore();
+    return;
   }
-};
 
-const drawBall = () => {
+  if (item.kind === "trampoline") {
+    ctx.save();
+    ctx.translate(item.x, item.y);
+    ctx.rotate(item.angle);
+    ctx.beginPath();
+    ctx.strokeStyle = isLightTheme() ? "rgba(0,0,0,0.9)" : "rgba(255,255,255,0.92)";
+    ctx.moveTo(-item.width * 0.5, -item.height * 0.5);
+    ctx.lineTo(item.width * 0.5, -item.height * 0.5);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.strokeStyle = isLightTheme() ? "rgba(0,0,0,0.24)" : "rgba(255,255,255,0.2)";
+    ctx.moveTo(-item.width * 0.5 + 8, -item.height * 0.5);
+    ctx.lineTo(-item.width * 0.5 + 2, 18);
+    ctx.moveTo(item.width * 0.5 - 8, -item.height * 0.5);
+    ctx.lineTo(item.width * 0.5 - 2, 18);
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+
   ctx.beginPath();
   ctx.fillStyle = "rgba(255,255,255,0.1)";
-  ctx.arc(ball.x, ball.y, ball.radius + 12, 0, Math.PI * 2);
+  ctx.arc(item.x, item.y, item.radius + 12, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.beginPath();
   ctx.fillStyle = "#ffffff";
-  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+  ctx.arc(item.x, item.y, item.radius, 0, Math.PI * 2);
   ctx.fill();
 
   if (isLightTheme()) {
     ctx.beginPath();
     ctx.strokeStyle = "#000000";
     ctx.lineWidth = 1.5;
-    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.arc(item.x, item.y, item.radius, 0, Math.PI * 2);
     ctx.stroke();
   }
 
   ctx.save();
-  ctx.translate(ball.x, ball.y);
-  ctx.rotate(ball.angle);
+  ctx.translate(item.x, item.y);
+  ctx.rotate(item.angle);
   ctx.beginPath();
   ctx.strokeStyle = "#000000";
-  ctx.moveTo(0, -ball.radius * 0.72);
-  ctx.lineTo(0, ball.radius * 0.72);
+  ctx.moveTo(0, -item.radius * 0.72);
+  ctx.lineTo(0, item.radius * 0.72);
   ctx.stroke();
   ctx.restore();
 };
 
 const tick = () => {
-  if (isMobileCanvas) {
-    drawWaterBackdrop();
-    updateWater();
-    drawTank();
-  } else {
+  if (state.mode === "ball") {
     drawBallBackdrop();
-    updateBall();
-    drawBall();
+
+    const balls = items.filter((item): item is Ball => item.kind === "ball");
+    for (const ball of balls) updateBallItem(ball);
+    for (let i = 0; i < balls.length; i += 1) {
+      for (let j = i + 1; j < balls.length; j += 1) {
+        resolveBallCollision(balls[i], balls[j]);
+      }
+    }
+
+    for (const item of items) drawItem(item);
+  } else {
+    updateWater();
+    drawWater();
   }
 
   window.requestAnimationFrame(tick);

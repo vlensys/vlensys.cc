@@ -401,35 +401,6 @@ body.cursor-down .cursor-ring {
   transform: translateY(0);
 }
 
-.browser-bar {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 12px;
-  align-items: center;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--soft);
-}
-
-.browser-dots {
-  display: inline-flex;
-  gap: 6px;
-}
-
-.browser-dots span {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.browser-title {
-  font-size: 0.82rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.browser-close,
 .browser-tab,
 .browser-reset {
   border: 0;
@@ -437,11 +408,6 @@ body.cursor-down .cursor-ring {
   color: rgba(255, 255, 255, 0.84);
   font: inherit;
   text-transform: lowercase;
-}
-
-.browser-close {
-  width: 28px;
-  height: 28px;
 }
 
 .browser-body {

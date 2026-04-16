@@ -178,16 +178,12 @@ const panel = canvas.parentElement;
 if (!(panel instanceof HTMLElement))
     throw new Error("Canvas parent element is unavailable.");
 const browser = panel.querySelector("#game-browser");
-const browserClose = panel.querySelector("#game-browser-close");
 const browserReset = panel.querySelector("#game-reset");
-const browserTitle = panel.querySelector(".browser-title");
 const objectButtons = Array.from(panel.querySelectorAll("[data-object]"));
 const motionButton = panel.querySelector(".motion-button");
 const autoModeQuery = window.matchMedia("(max-width: 920px)");
 if (!(browser instanceof HTMLDivElement))
     throw new Error("Browser element #game-browser was not found.");
-if (!(browserClose instanceof HTMLButtonElement))
-    throw new Error("Close button was not found.");
 if (!(browserReset instanceof HTMLButtonElement))
     throw new Error("Reset button was not found.");
 const canUseCustomCursor = window.matchMedia("(pointer: fine)").matches && Boolean(cursorRing) && Boolean(cursorDot);
@@ -339,8 +335,6 @@ const syncMotionUi = () => {
 const updateBrowserUi = () => {
     browser.classList.toggle("is-open", state.browserOpen && state.mode === "ball");
     browser.setAttribute("aria-hidden", state.browserOpen && state.mode === "ball" ? "false" : "true");
-    if (browserTitle)
-        browserTitle.textContent = state.mode === "ball" ? "object browser" : "";
 };
 const resetCurrentMode = () => {
     if (state.mode === "ball")
@@ -418,7 +412,6 @@ autoModeQuery.addEventListener("change", () => {
     syncModeToResolution();
     resizeCanvas();
 });
-browserClose.addEventListener("click", closeBrowser);
 browserReset.addEventListener("click", () => {
     resetCurrentMode();
     closeBrowser();

@@ -737,9 +737,7 @@ body.cursor-down .cursor-ring {
   }
 
   .play-area {
-    display: block;
-    min-height: 360px;
-    margin-top: 24px;
+    display: none;
   }
 
   #field {

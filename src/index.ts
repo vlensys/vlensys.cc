@@ -261,7 +261,7 @@ if (canUseCustomCursor && cursorRing && cursorDot) {
   window.requestAnimationFrame(animateCursor);
 }
 
-type Mode = "ball" | "water";
+type Mode = "ball" | "blank";
 type DragMode = "move" | "rotate" | null;
 
 type BaseItem = {
@@ -372,11 +372,36 @@ const slosh = {
   amplitude: 0
 };
 
+const waterSurface = {
+  count: 0,
+  restY: 0,
+  heights: new Float32Array(0),
+  velocities: new Float32Array(0),
+  leftDeltas: new Float32Array(0),
+  rightDeltas: new Float32Array(0)
+};
+
+const buildWaterSurface = () => {
+  const count = Math.round(clamp(tank.width / 28, 16, 34));
+  const restY = tank.y + tank.height * 0.58;
+  waterSurface.count = count;
+  waterSurface.restY = restY;
+  waterSurface.heights = new Float32Array(count);
+  waterSurface.velocities = new Float32Array(count);
+  waterSurface.leftDeltas = new Float32Array(count);
+  waterSurface.rightDeltas = new Float32Array(count);
+
+  for (let i = 0; i < count; i += 1) {
+    waterSurface.heights[i] = restY;
+  }
+};
+
 const resetWater = () => {
   tilt.current = 0;
   tilt.target = 0;
   slosh.phase = 0;
   slosh.amplitude = 0;
+  buildWaterSurface();
 };
 
 const supportsDeviceOrientation = "DeviceOrientationEvent" in window;
@@ -425,7 +450,7 @@ let motionTrackingEnabled = false;
 
 const syncMotionUi = () => {
   if (!motionButton) return;
-  motionButton.hidden = state.mode !== "water" || !hasOrientationPermissionApi || !motionPermissionAttempted || motionTrackingEnabled;
+  motionButton.hidden = true;
 };
 
 const updateBrowserUi = () => {
@@ -439,7 +464,7 @@ const resetCurrentMode = () => {
 };
 
 const updateModeUi = () => {
-  canvas.setAttribute("aria-label", state.mode === "ball" ? "Ball physics playground" : "Water physics playground");
+  canvas.setAttribute("aria-label", state.mode === "ball" ? "Ball physics playground" : "Empty mobile canvas");
   updateBrowserUi();
   syncMotionUi();
 };
@@ -462,7 +487,7 @@ const setMode = (mode: Mode) => {
 };
 
 const syncModeToResolution = () => {
-  setMode(autoModeQuery.matches ? "water" : "ball");
+  setMode(autoModeQuery.matches ? "blank" : "ball");
 };
 
 const resizeCanvas = () => {
@@ -473,7 +498,7 @@ const resizeCanvas = () => {
   canvas.height = Math.floor(rect.height * state.dpr);
   ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
 
-  const tankPadding = state.mode === "water" ? 42 : tank.padding;
+  const tankPadding = tank.padding;
   tank.width = Math.max(220, state.width - tankPadding * 2);
   tank.height = Math.max(180, state.height - tankPadding * 2);
   tank.x = (state.width - tank.width) * 0.5;
@@ -535,15 +560,8 @@ if (motionButton) {
   });
 }
 
-if (supportsDeviceOrientation && !hasOrientationPermissionApi) {
-  window.addEventListener("deviceorientation", handleOrientation);
-  motionTrackingEnabled = true;
-  syncMotionUi();
-}
-
 const requestMotionOnFirstMobileGesture = () => {
-  if (state.mode !== "water" || !hasOrientationPermissionApi || motionTrackingEnabled || motionPermissionAttempted) return;
-  void enableOrientationTracking();
+  return;
 };
 
 window.addEventListener("pointerdown", requestMotionOnFirstMobileGesture, { passive: true });
@@ -579,8 +597,7 @@ canvas.addEventListener("pointerdown", (event) => {
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;
 
-  if (state.mode === "water") {
-    applyTiltInput(((x / Math.max(rect.width, 1)) - 0.5) * 2.35);
+  if (state.mode !== "ball") {
     return;
   }
 
@@ -623,9 +640,7 @@ canvas.addEventListener("pointermove", (event) => {
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;
 
-  if (state.mode === "water") {
-    if (supportsDeviceOrientation && motionTrackingEnabled) return;
-    applyTiltInput(((x / Math.max(rect.width, 1)) - 0.5) * 2.35);
+  if (state.mode !== "ball") {
     return;
   }
 
@@ -651,7 +666,7 @@ canvas.addEventListener("pointermove", (event) => {
 });
 
 canvas.addEventListener("pointerleave", () => {
-  if (state.mode === "water" && !motionTrackingEnabled) applyTiltInput(0);
+  if (state.mode !== "ball" && !motionTrackingEnabled) applyTiltInput(0);
 });
 
 const releaseItems = (pointerId?: number) => {
@@ -787,12 +802,88 @@ const updateBallItem = (ball: Ball) => {
   }
 };
 
-const updateWater = () => {
-  const delta = tilt.target - tilt.current;
-  tilt.current += delta * 0.14;
-  slosh.phase += 0.08 + Math.abs(tilt.current) * 0.1;
-  slosh.amplitude += (Math.abs(delta) * tank.height * 0.12 - slosh.amplitude) * 0.16;
-  slosh.amplitude *= reducedMotion ? 0.9 : 0.965;
+const getWaterBaseY = (index: number) => {
+  const normalizedX = waterSurface.count <= 1 ? 0.5 : index / (waterSurface.count - 1);
+  const centeredX = normalizedX - 0.5;
+  const slope = tilt.current * tank.height * 0.16;
+  return waterSurface.restY + centeredX * slope;
+};
+
+const disturbWater = (normalizedX: number, strength: number) => {
+  if (waterSurface.count === 0) return;
+
+  const center = normalizedX * (waterSurface.count - 1);
+  for (let i = 0; i < waterSurface.count; i += 1) {
+    const distance = Math.abs(i - center);
+    const falloff = Math.max(0, 1 - distance / 3.25);
+    if (falloff <= 0) continue;
+    waterSurface.velocities[i] += strength * falloff;
+  }
+};
+
+const updateWater = (dt: number) => {
+  if (waterSurface.count === 0) buildWaterSurface();
+
+  const clampedDt = clamp(dt, 1 / 120, 1 / 24);
+  const previousTilt = tilt.current;
+  const tiltBlend = 1 - Math.exp(-clampedDt * 9);
+  tilt.current += (tilt.target - tilt.current) * tiltBlend;
+  const tiltDelta = tilt.current - previousTilt;
+
+  if (Math.abs(tiltDelta) > 0.0001) {
+    for (let i = 0; i < waterSurface.count; i += 1) {
+      const normalizedX = waterSurface.count <= 1 ? 0.5 : i / (waterSurface.count - 1);
+      waterSurface.velocities[i] += (normalizedX - 0.5) * tiltDelta * tank.height * 44;
+    }
+  }
+
+  const substeps = clampedDt > 1 / 50 ? 3 : 2;
+  const stepDt = clampedDt / substeps;
+  const spring = reducedMotion ? 24 : 34;
+  const spread = reducedMotion ? 0.1 : 0.14;
+  const damping = Math.exp(-stepDt * (reducedMotion ? 7 : 9.5));
+
+  for (let step = 0; step < substeps; step += 1) {
+    for (let i = 0; i < waterSurface.count; i += 1) {
+      const displacement = waterSurface.heights[i] - getWaterBaseY(i);
+      waterSurface.velocities[i] += -displacement * spring * stepDt;
+      waterSurface.velocities[i] *= damping;
+    }
+
+    for (let iteration = 0; iteration < 2; iteration += 1) {
+      waterSurface.leftDeltas.fill(0);
+      waterSurface.rightDeltas.fill(0);
+
+      for (let i = 0; i < waterSurface.count; i += 1) {
+        if (i > 0) {
+          waterSurface.leftDeltas[i] = spread * (waterSurface.heights[i] - waterSurface.heights[i - 1]);
+          waterSurface.velocities[i - 1] += waterSurface.leftDeltas[i];
+        }
+
+        if (i < waterSurface.count - 1) {
+          waterSurface.rightDeltas[i] = spread * (waterSurface.heights[i] - waterSurface.heights[i + 1]);
+          waterSurface.velocities[i + 1] += waterSurface.rightDeltas[i];
+        }
+      }
+
+      for (let i = 0; i < waterSurface.count; i += 1) {
+        if (i > 0) waterSurface.heights[i - 1] += waterSurface.leftDeltas[i];
+        if (i < waterSurface.count - 1) waterSurface.heights[i + 1] += waterSurface.rightDeltas[i];
+      }
+    }
+
+    for (let i = 0; i < waterSurface.count; i += 1) {
+      waterSurface.heights[i] += waterSurface.velocities[i] * stepDt;
+      waterSurface.heights[i] = clamp(
+        waterSurface.heights[i],
+        tank.y + tank.height * 0.14,
+        tank.y + tank.height * 0.94
+      );
+    }
+  }
+
+  slosh.phase += clampedDt * (1.35 + Math.abs(tilt.current) * 0.8);
+  slosh.amplitude += ((reducedMotion ? 1.2 : 2.4) - slosh.amplitude) * (1 - Math.exp(-clampedDt * 2.4));
 };
 
 const drawBallBackdrop = () => {
@@ -811,16 +902,23 @@ const drawBallBackdrop = () => {
   }
 };
 
+const drawBlankScene = () => {
+  ctx.clearRect(0, 0, state.width, state.height);
+};
+
 const getWaterSurfaceY = (x: number) => {
-  const normalizedX = (x - tank.x) / Math.max(tank.width, 1);
-  const baseFill = tank.y + tank.height * 0.58;
-  const slope = tilt.current * tank.height * 0.3;
-  const centeredX = normalizedX - 0.5;
-  const primaryWave = Math.sin(normalizedX * Math.PI * 2 + slosh.phase) * slosh.amplitude;
-  const secondaryWave = Math.sin(normalizedX * Math.PI * 5 - slosh.phase * 1.35) * (slosh.amplitude * 0.34);
-  const tertiaryWave = Math.cos(normalizedX * Math.PI * 8 + slosh.phase * 0.65) * (slosh.amplitude * 0.16);
+  if (waterSurface.count === 0) return tank.y + tank.height * 0.58;
+
+  const normalizedX = clamp((x - tank.x) / Math.max(tank.width, 1), 0, 1);
+  const scaledIndex = normalizedX * (waterSurface.count - 1);
+  const leftIndex = Math.floor(scaledIndex);
+  const rightIndex = Math.min(waterSurface.count - 1, leftIndex + 1);
+  const mix = scaledIndex - leftIndex;
+  const interpolatedHeight = waterSurface.heights[leftIndex] + (waterSurface.heights[rightIndex] - waterSurface.heights[leftIndex]) * mix;
+  const microRipple = Math.sin(normalizedX * Math.PI * 7 - slosh.phase * 1.8) * slosh.amplitude;
+  const shimmer = Math.cos(normalizedX * Math.PI * 13 + slosh.phase * 1.2) * (slosh.amplitude * 0.42);
   return clamp(
-    baseFill + centeredX * slope + primaryWave + secondaryWave + tertiaryWave,
+    interpolatedHeight + microRipple + shimmer,
     tank.y + tank.height * 0.16,
     tank.y + tank.height * 0.92
   );
@@ -829,7 +927,7 @@ const drawWater = () => {
   ctx.clearRect(0, 0, state.width, state.height);
 
   const radius = 28;
-  const waveSteps = 26;
+  const waveSteps = Math.max(22, waterSurface.count * 2);
 
   const roundedPath = () => {
     ctx.beginPath();
@@ -850,17 +948,28 @@ const drawWater = () => {
   ctx.clip();
 
   const waterGradient = ctx.createLinearGradient(0, tank.y, 0, tank.y + tank.height);
-  waterGradient.addColorStop(0, "rgba(255,255,255,0.28)");
-  waterGradient.addColorStop(0.08, "rgba(191,234,255,0.32)");
-  waterGradient.addColorStop(0.4, "rgba(80,172,255,0.36)");
-  waterGradient.addColorStop(1, "rgba(20,70,140,0.82)");
+  waterGradient.addColorStop(0, "rgba(255,255,255,0.36)");
+  waterGradient.addColorStop(0.08, "rgba(214,241,255,0.34)");
+  waterGradient.addColorStop(0.32, "rgba(108,196,255,0.38)");
+  waterGradient.addColorStop(1, "rgba(18,73,145,0.84)");
 
   ctx.beginPath();
   ctx.moveTo(tank.x, tank.y + tank.height);
   for (let step = 0; step <= waveSteps; step += 1) {
     const x = tank.x + (tank.width / waveSteps) * step;
-    ctx.lineTo(x, getWaterSurfaceY(x));
+    const y = getWaterSurfaceY(x);
+    if (step === 0) {
+      ctx.lineTo(x, y);
+      continue;
+    }
+
+    const previousX = tank.x + (tank.width / waveSteps) * (step - 1);
+    const previousY = getWaterSurfaceY(previousX);
+    const controlX = (previousX + x) * 0.5;
+    const controlY = (previousY + y) * 0.5;
+    ctx.quadraticCurveTo(previousX, previousY, controlX, controlY);
   }
+  ctx.lineTo(tank.x + tank.width, getWaterSurfaceY(tank.x + tank.width));
   ctx.lineTo(tank.x + tank.width, tank.y + tank.height);
   ctx.closePath();
   ctx.fillStyle = waterGradient;
@@ -870,9 +979,18 @@ const drawWater = () => {
   for (let step = 0; step <= waveSteps; step += 1) {
     const x = tank.x + (tank.width / waveSteps) * step;
     const y = getWaterSurfaceY(x);
-    if (step === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+    if (step === 0) {
+      ctx.moveTo(x, y);
+      continue;
+    }
+
+    const previousX = tank.x + (tank.width / waveSteps) * (step - 1);
+    const previousY = getWaterSurfaceY(previousX);
+    const controlX = (previousX + x) * 0.5;
+    const controlY = (previousY + y) * 0.5;
+    ctx.quadraticCurveTo(previousX, previousY, controlX, controlY);
   }
+  ctx.lineTo(tank.x + tank.width, getWaterSurfaceY(tank.x + tank.width));
   ctx.strokeStyle = "rgba(255,255,255,0.62)";
   ctx.lineWidth = 2;
   ctx.stroke();
@@ -881,9 +999,18 @@ const drawWater = () => {
   for (let step = 0; step <= waveSteps; step += 1) {
     const x = tank.x + (tank.width / waveSteps) * step;
     const y = getWaterSurfaceY(x) + 6;
-    if (step === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+    if (step === 0) {
+      ctx.moveTo(x, y);
+      continue;
+    }
+
+    const previousX = tank.x + (tank.width / waveSteps) * (step - 1);
+    const previousY = getWaterSurfaceY(previousX) + 6;
+    const controlX = (previousX + x) * 0.5;
+    const controlY = (previousY + y) * 0.5;
+    ctx.quadraticCurveTo(previousX, previousY, controlX, controlY);
   }
+  ctx.lineTo(tank.x + tank.width, getWaterSurfaceY(tank.x + tank.width) + 6);
   ctx.strokeStyle = "rgba(255,255,255,0.12)";
   ctx.lineWidth = 5;
   ctx.stroke();
@@ -958,7 +1085,12 @@ const drawItem = (item: Item) => {
   ctx.restore();
 };
 
-const tick = () => {
+let previousTick = 0;
+
+const tick = (timestamp: number) => {
+  const dt = previousTick === 0 ? 1 / 60 : (timestamp - previousTick) / 1000;
+  previousTick = timestamp;
+
   if (state.mode === "ball") {
     drawBallBackdrop();
 
@@ -972,8 +1104,7 @@ const tick = () => {
 
     for (const item of items) drawItem(item);
   } else {
-    updateWater();
-    drawWater();
+    drawBlankScene();
   }
 
   window.requestAnimationFrame(tick);

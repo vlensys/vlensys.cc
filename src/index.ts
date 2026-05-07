@@ -3,40 +3,7 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matc
 const reveals = document.querySelectorAll<HTMLElement>(".reveal");
 const cursorRing = document.querySelector<HTMLElement>(".cursor-ring");
 const cursorDot = document.querySelector<HTMLElement>(".cursor-dot");
-const themeToggle = document.querySelector<HTMLButtonElement>(".theme-toggle");
-const themeQuery = window.matchMedia("(prefers-color-scheme: light)");
-const storedTheme = window.localStorage.getItem("theme");
-const initialTheme = storedTheme === "light" || storedTheme === "dark"
-  ? storedTheme
-  : themeQuery.matches ? "light" : "dark";
-
-const applyTheme = (theme: "light" | "dark", persist = true) => {
-  root.dataset.theme = theme;
-
-  if (themeToggle) {
-    const nextTheme = theme === "dark" ? "light" : "dark";
-    themeToggle.textContent = nextTheme;
-    themeToggle.setAttribute("aria-label", `switch to ${nextTheme} mode`);
-    themeToggle.setAttribute("aria-pressed", theme === "light" ? "true" : "false");
-  }
-
-  if (persist) {
-    window.localStorage.setItem("theme", theme);
-  }
-};
-
-applyTheme(initialTheme as "light" | "dark", false);
-
-if (themeToggle) {
-  themeToggle.addEventListener("click", () => {
-    applyTheme(root.dataset.theme === "light" ? "dark" : "light");
-  });
-}
-
-themeQuery.addEventListener("change", (event) => {
-  if (window.localStorage.getItem("theme")) return;
-  applyTheme(event.matches ? "light" : "dark", false);
-});
+root.dataset.theme = "summer";
 
 const observer = new IntersectionObserver((entries, intersectionObserver) => {
   entries.forEach((entry) => {
@@ -203,24 +170,6 @@ tracks.forEach((track) => {
 
 syncTrackButtons();
 
-const canvas = document.getElementById("field");
-if (!(canvas instanceof HTMLCanvasElement)) throw new Error("Canvas element #field was not found.");
-
-const ctx = canvas.getContext("2d");
-if (!ctx) throw new Error("2D canvas context is unavailable.");
-
-const panel = canvas.parentElement;
-if (!(panel instanceof HTMLElement)) throw new Error("Canvas parent element is unavailable.");
-
-const browser = panel.querySelector<HTMLDivElement>("#game-browser");
-const browserReset = panel.querySelector<HTMLButtonElement>("#game-reset");
-const objectButtons = Array.from(panel.querySelectorAll<HTMLButtonElement>("[data-object]"));
-const motionButton = panel.querySelector<HTMLButtonElement>(".motion-button");
-const autoModeQuery = window.matchMedia("(max-width: 920px)");
-
-if (!(browser instanceof HTMLDivElement)) throw new Error("Browser element #game-browser was not found.");
-if (!(browserReset instanceof HTMLButtonElement)) throw new Error("Reset button was not found.");
-
 const canUseCustomCursor = window.matchMedia("(pointer: fine)").matches && Boolean(cursorRing) && Boolean(cursorDot);
 
 if (canUseCustomCursor && cursorRing && cursorDot) {
@@ -235,11 +184,11 @@ if (canUseCustomCursor && cursorRing && cursorDot) {
     dotY: window.innerHeight * 0.5
   };
 
-  const interactiveSelector = "a, button, #field, .chip, .button, .link-row, .browser-window";
+  const interactiveSelector = "a, button, .chip, .button, .link-row";
 
   const animateCursor = () => {
-    cursorState.ringX += (cursorState.x - cursorState.ringX) * 0.68;
-    cursorState.ringY += (cursorState.y - cursorState.ringY) * 0.68;
+    cursorState.ringX += (cursorState.x - cursorState.ringX) * 0.96;
+    cursorState.ringY += (cursorState.y - cursorState.ringY) * 0.96;
     cursorState.dotX = cursorState.x;
     cursorState.dotY = cursorState.y;
     cursorRing.style.transform = `translate3d(${cursorState.ringX}px, ${cursorState.ringY}px, 0)`;
@@ -260,6 +209,24 @@ if (canUseCustomCursor && cursorRing && cursorDot) {
 
   window.requestAnimationFrame(animateCursor);
 }
+
+const canvas = document.getElementById("field");
+
+if (canvas instanceof HTMLCanvasElement) {
+const ctx = canvas.getContext("2d");
+if (!ctx) throw new Error("2D canvas context is unavailable.");
+
+const panel = canvas.parentElement;
+if (!(panel instanceof HTMLElement)) throw new Error("Canvas parent element is unavailable.");
+
+const browser = panel.querySelector<HTMLDivElement>("#game-browser");
+const browserReset = panel.querySelector<HTMLButtonElement>("#game-reset");
+const objectButtons = Array.from(panel.querySelectorAll<HTMLButtonElement>("[data-object]"));
+const motionButton = panel.querySelector<HTMLButtonElement>(".motion-button");
+const autoModeQuery = window.matchMedia("(max-width: 920px)");
+
+if (!(browser instanceof HTMLDivElement)) throw new Error("Browser element #game-browser was not found.");
+if (!(browserReset instanceof HTMLButtonElement)) throw new Error("Reset button was not found.");
 
 type Mode = "ball" | "blank";
 type DragMode = "move" | "rotate" | null;
@@ -312,7 +279,7 @@ const rotatePoint = (x: number, y: number, angle: number) => ({
   y: x * Math.sin(angle) + y * Math.cos(angle)
 });
 const toLocal = (item: Item, x: number, y: number) => rotatePoint(x - item.x, y - item.y, -item.angle);
-const isLightTheme = () => root.dataset.theme === "light";
+const isLightTheme = () => false;
 
 const createBaseItem = (x: number, y: number): BaseItem => ({
   x,
@@ -889,17 +856,40 @@ const updateWater = (dt: number) => {
 const drawBallBackdrop = () => {
   ctx.clearRect(0, 0, state.width, state.height);
   const anchorBall = items.find((item): item is Ball => item.kind === "ball") || createBall(state.width * 0.5, state.height * 0.5);
-  const bandCount = 8;
-  const pull = ((anchorBall.x - state.width * 0.5) / Math.max(state.width, 1)) * 24;
+  const drift = ((anchorBall.x - state.width * 0.5) / Math.max(state.width, 1)) * 18;
 
-  for (let i = 0; i < bandCount; i += 1) {
-    const y = ((i + 1) / (bandCount + 1)) * state.height;
+  const skyGradient = ctx.createLinearGradient(0, 0, 0, state.height);
+  skyGradient.addColorStop(0, "rgba(168,223,251,0.22)");
+  skyGradient.addColorStop(0.58, "rgba(126,194,227,0.08)");
+  skyGradient.addColorStop(1, "rgba(246,204,140,0.1)");
+  ctx.fillStyle = skyGradient;
+  ctx.fillRect(0, 0, state.width, state.height);
+
+  ctx.fillStyle = "rgba(255,241,196,0.18)";
+  ctx.beginPath();
+  ctx.arc(state.width - 92, 82, 42, 0, Math.PI * 2);
+  ctx.fill();
+
+  const cloudY = [86, 128, 172];
+  cloudY.forEach((y, index) => {
+    const x = 80 + index * 150 + drift * (0.4 + index * 0.12);
+    ctx.fillStyle = "rgba(255,250,239,0.16)";
     ctx.beginPath();
-    ctx.strokeStyle = i % 2 === 0 ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.06)";
-    ctx.moveTo(0, y);
-    ctx.bezierCurveTo(state.width * 0.25, y + pull * 0.18, state.width * 0.75, y - pull * 0.18, state.width, y);
-    ctx.stroke();
-  }
+    ctx.arc(x, y, 22, 0, Math.PI * 2);
+    ctx.arc(x + 24, y - 8, 18, 0, Math.PI * 2);
+    ctx.arc(x + 48, y, 20, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.beginPath();
+  ctx.fillStyle = "rgba(245,209,140,0.1)";
+  ctx.moveTo(0, state.height - 86);
+  ctx.quadraticCurveTo(state.width * 0.18, state.height - 118 + drift * 0.15, state.width * 0.38, state.height - 94);
+  ctx.quadraticCurveTo(state.width * 0.64, state.height - 58, state.width, state.height - 96);
+  ctx.lineTo(state.width, state.height);
+  ctx.lineTo(0, state.height);
+  ctx.closePath();
+  ctx.fill();
 };
 
 const drawBlankScene = () => {
@@ -1028,10 +1018,18 @@ const drawItem = (item: Item) => {
     ctx.save();
     ctx.translate(item.x, item.y);
     ctx.rotate(item.angle);
-    ctx.fillStyle = isLightTheme() ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.16)";
+    ctx.fillStyle = "#f6d19a";
     ctx.fillRect(-item.width * 0.5, -item.height * 0.5, item.width, item.height);
-    ctx.strokeStyle = isLightTheme() ? "rgba(0,0,0,0.22)" : "rgba(255,255,255,0.12)";
+    ctx.strokeStyle = "rgba(118,78,36,0.64)";
+    ctx.lineWidth = 2.2;
     ctx.strokeRect(-item.width * 0.5, -item.height * 0.5, item.width, item.height);
+    ctx.strokeStyle = "rgba(184,127,68,0.36)";
+    for (let x = -item.width * 0.34; x <= item.width * 0.34; x += item.width * 0.22) {
+      ctx.beginPath();
+      ctx.moveTo(x, -item.height * 0.42);
+      ctx.lineTo(x, item.height * 0.42);
+      ctx.stroke();
+    }
     ctx.restore();
     return;
   }
@@ -1041,46 +1039,58 @@ const drawItem = (item: Item) => {
     ctx.translate(item.x, item.y);
     ctx.rotate(item.angle);
     ctx.beginPath();
-    ctx.strokeStyle = isLightTheme() ? "rgba(0,0,0,0.9)" : "rgba(255,255,255,0.92)";
-    ctx.moveTo(-item.width * 0.5, -item.height * 0.5);
-    ctx.lineTo(item.width * 0.5, -item.height * 0.5);
+    ctx.fillStyle = "#ffd27e";
+    ctx.beginPath();
+    ctx.moveTo(-item.width * 0.5 + 12, 0);
+    ctx.quadraticCurveTo(0, -item.height * 1.4, item.width * 0.5 - 12, 0);
+    ctx.quadraticCurveTo(0, item.height * 1.4, -item.width * 0.5 + 12, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "rgba(121,79,36,0.8)";
+    ctx.lineWidth = 2.2;
     ctx.stroke();
     ctx.beginPath();
-    ctx.strokeStyle = isLightTheme() ? "rgba(0,0,0,0.24)" : "rgba(255,255,255,0.2)";
-    ctx.moveTo(-item.width * 0.5 + 8, -item.height * 0.5);
-    ctx.lineTo(-item.width * 0.5 + 2, 18);
-    ctx.moveTo(item.width * 0.5 - 8, -item.height * 0.5);
-    ctx.lineTo(item.width * 0.5 - 2, 18);
+    ctx.strokeStyle = "rgba(255,241,214,0.82)";
+    ctx.moveTo(-item.width * 0.24, -1);
+    ctx.quadraticCurveTo(0, -item.height * 0.52, item.width * 0.24, -1);
     ctx.stroke();
     ctx.restore();
     return;
   }
 
   ctx.beginPath();
-  ctx.fillStyle = "rgba(255,255,255,0.1)";
+  ctx.fillStyle = "rgba(255,201,123,0.12)";
   ctx.arc(item.x, item.y, item.radius + 12, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.beginPath();
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = "#fff5df";
   ctx.arc(item.x, item.y, item.radius, 0, Math.PI * 2);
   ctx.fill();
 
-  if (isLightTheme()) {
-    ctx.beginPath();
-    ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 1.5;
-    ctx.arc(item.x, item.y, item.radius, 0, Math.PI * 2);
-    ctx.stroke();
-  }
+  ctx.beginPath();
+  ctx.strokeStyle = "rgba(108,74,36,0.86)";
+  ctx.lineWidth = 1.9;
+  ctx.arc(item.x, item.y, item.radius, 0, Math.PI * 2);
+  ctx.stroke();
 
   ctx.save();
   ctx.translate(item.x, item.y);
   ctx.rotate(item.angle);
   ctx.beginPath();
-  ctx.strokeStyle = "#000000";
-  ctx.moveTo(0, -item.radius * 0.72);
-  ctx.lineTo(0, item.radius * 0.72);
+  ctx.strokeStyle = "#ff9b69";
+  ctx.lineWidth = 8;
+  ctx.arc(0, 0, item.radius * 0.62, -Math.PI * 0.26, Math.PI * 0.24);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.strokeStyle = "#7fc7e8";
+  ctx.lineWidth = 8;
+  ctx.arc(0, 0, item.radius * 0.62, Math.PI * 0.38, Math.PI * 0.9);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.strokeStyle = "#ffd36e";
+  ctx.lineWidth = 8;
+  ctx.arc(0, 0, item.radius * 0.62, Math.PI * 1.04, Math.PI * 1.56);
   ctx.stroke();
   ctx.restore();
 };
@@ -1111,3 +1121,4 @@ const tick = (timestamp: number) => {
 };
 
 window.requestAnimationFrame(tick);
+}

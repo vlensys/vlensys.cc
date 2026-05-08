@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="cursor-ring" aria-hidden="true"></div>
+  <div class="cursor-dot" aria-hidden="true"></div>
   <div class="summer-backdrop" aria-hidden="true">
     <div class="summer-glow summer-glow-a"></div>
     <div class="summer-glow summer-glow-b"></div>
@@ -38,10 +40,29 @@
 
     <section class="hero">
       <h1>blog</h1>
-      <p class="hero-copy">random paragraphs i write when im bored/interested in a topic</p>
+      <p class="hero-copy">stuff i write, sometimes</p>
     </section>
 
     <section class="posts" aria-label="Posts">
+
+      <details class="post-card"> <!--good morning future me!!! in case you forgot, you start copying from here-->
+        <summary class="post-summary">
+          <div class="post-summary-copy">
+            <p class="post-meta">may 8, 2026</p>
+            <h2>m-m-macroing on skyblock</h2>
+          </div>
+          <span class="post-toggle" aria-hidden="true">^</span>
+        </summary>
+        <div class="post-content">
+          <div class="post-main">
+            <p>honestly, i macro a fuck ton. like a TON ton yk? i gen don't know how people have the ability to fish for 8 hours a day, like it's so fucking boring i'd rather play RUNESCAPE or edit something.</p>
+            <p>i get the hate most people have for macroers, i'd also be pretty mad if i spent my blood and tears fishing nine hours a day for a new fishing rod, but at the saem time they should understand that people have j-j-j-jobs, f-f-f-friends and a s-s-s-social life.</p>
+            <p>obviously, this doesn't apply if you're a youtuber, considering it pretty much IS your job...</p>
+            <p>ok last things last, join discord.gg/aethersb for the GREATEST farming macro... EVER!!!</p>
+          </div>
+        </div>
+      </details> <!--and end it right here!-->
+
       <details class="post-card">
         <summary class="post-summary">
           <div class="post-summary-copy">
@@ -67,7 +88,9 @@
           </aside>
         </div>
       </details>
+
     </section>
   </main>
+  <script defer src="../dist/index.js"></script>
 </body>
 </html>

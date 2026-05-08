@@ -148,28 +148,86 @@ if (canUseCustomCursor && cursorRing && cursorDot) {
         y: window.innerHeight * 0.5,
         ringX: window.innerWidth * 0.5,
         ringY: window.innerHeight * 0.5,
+        ringVX: 0,
+        ringVY: 0,
+        ringScaleX: 1,
+        ringScaleY: 1,
+        ringRotation: 0,
+        blobPhase: Math.random() * Math.PI * 2,
         dotX: window.innerWidth * 0.5,
-        dotY: window.innerHeight * 0.5
+        dotY: window.innerHeight * 0.5,
+        hovering: false,
+        pressing: false
     };
     const interactiveSelector = "a, button, .chip, .button, .link-row";
-    const animateCursor = () => {
-        cursorState.ringX += (cursorState.x - cursorState.ringX) * 0.96;
-        cursorState.ringY += (cursorState.y - cursorState.ringY) * 0.96;
+    const clampNumber = (value, min, max) => Math.max(min, Math.min(max, value));
+    let previousCursorFrame = performance.now();
+    const animateCursor = (timestamp) => {
+        const frameMs = clampNumber(timestamp - previousCursorFrame, 8, 34);
+        previousCursorFrame = timestamp;
+        const frameFactor = frameMs / (1000 / 60);
+        const followSpring = 0.2 * frameFactor;
+        cursorState.ringVX += (cursorState.x - cursorState.ringX) * followSpring;
+        cursorState.ringVY += (cursorState.y - cursorState.ringY) * followSpring;
+        const drag = Math.pow(0.56, frameFactor);
+        cursorState.ringVX *= drag;
+        cursorState.ringVY *= drag;
+        cursorState.ringX += cursorState.ringVX * frameFactor;
+        cursorState.ringY += cursorState.ringVY * frameFactor;
+        const speed = Math.hypot(cursorState.ringVX, cursorState.ringVY);
+        const bubbleStretch = clampNumber(speed * 0.02, 0, 0.24);
+        const speedFactor = clampNumber(speed * 0.035, 0, 1);
+        const baseScale = cursorState.pressing ? 0.9 : cursorState.hovering ? 1.16 : 1;
+        const targetScaleX = baseScale + bubbleStretch;
+        const targetScaleY = Math.max(0.74, baseScale - bubbleStretch * 0.84);
+        cursorState.ringScaleX += (targetScaleX - cursorState.ringScaleX) * (0.26 * frameFactor);
+        cursorState.ringScaleY += (targetScaleY - cursorState.ringScaleY) * (0.26 * frameFactor);
+        const phaseSpeed = 0.06 + speedFactor * 0.32 + (cursorState.hovering ? 0.02 : 0);
+        cursorState.blobPhase += phaseSpeed * frameFactor;
+        const morphIntensity = 6 + speedFactor * 14 + (cursorState.hovering ? 4 : 0) + (cursorState.pressing ? 3 : 0);
+        const wobbleA = Math.sin(cursorState.blobPhase);
+        const wobbleB = Math.sin(cursorState.blobPhase * 1.61 + 1.32);
+        const wobbleC = Math.sin(cursorState.blobPhase * 2.07 + 2.44);
+        const wobbleD = Math.sin(cursorState.blobPhase * 1.33 + 3.28);
+        const radiusA = clampNumber(50 + wobbleA * morphIntensity, 32, 68);
+        const radiusB = clampNumber(58 + wobbleB * morphIntensity, 34, 70);
+        const radiusC = clampNumber(46 + wobbleC * morphIntensity, 30, 66);
+        const radiusD = clampNumber(60 + wobbleD * morphIntensity, 34, 72);
+        const radiusE = clampNumber(56 + wobbleC * morphIntensity, 34, 70);
+        const radiusF = clampNumber(44 + wobbleD * morphIntensity, 30, 66);
+        const radiusG = clampNumber(62 + wobbleA * morphIntensity, 36, 74);
+        const radiusH = clampNumber(48 + wobbleB * morphIntensity, 32, 68);
+        const targetRotation = speed > 0.02
+            ? Math.atan2(cursorState.ringVY, cursorState.ringVX) * (180 / Math.PI)
+            : 0;
+        cursorState.ringRotation += (targetRotation - cursorState.ringRotation) * (0.18 * frameFactor);
         cursorState.dotX = cursorState.x;
         cursorState.dotY = cursorState.y;
-        cursorRing.style.transform = `translate3d(${cursorState.ringX}px, ${cursorState.ringY}px, 0)`;
+        cursorRing.style.transform = `translate3d(${cursorState.ringX}px, ${cursorState.ringY}px, 0) rotate(${cursorState.ringRotation}deg) scale(${cursorState.ringScaleX}, ${cursorState.ringScaleY})`;
+        cursorRing.style.borderRadius = `${radiusA}% ${radiusB}% ${radiusC}% ${radiusD}% / ${radiusE}% ${radiusF}% ${radiusG}% ${radiusH}%`;
         cursorDot.style.transform = `translate3d(${cursorState.dotX}px, ${cursorState.dotY}px, 0)`;
         window.requestAnimationFrame(animateCursor);
     };
     window.addEventListener("pointermove", (event) => {
         cursorState.x = event.clientX;
         cursorState.y = event.clientY;
+        cursorState.hovering = Boolean(event.target?.closest(interactiveSelector));
         root.classList.add("cursor-visible");
-        root.classList.toggle("cursor-hover", Boolean(event.target?.closest(interactiveSelector)));
+        root.classList.toggle("cursor-hover", cursorState.hovering);
     });
-    window.addEventListener("pointerdown", () => root.classList.add("cursor-down"));
-    window.addEventListener("pointerup", () => root.classList.remove("cursor-down"));
-    window.addEventListener("pointerleave", () => root.classList.remove("cursor-visible", "cursor-hover", "cursor-down"));
+    window.addEventListener("pointerdown", () => {
+        cursorState.pressing = true;
+        root.classList.add("cursor-down");
+    });
+    window.addEventListener("pointerup", () => {
+        cursorState.pressing = false;
+        root.classList.remove("cursor-down");
+    });
+    window.addEventListener("pointerleave", () => {
+        cursorState.hovering = false;
+        cursorState.pressing = false;
+        root.classList.remove("cursor-visible", "cursor-hover", "cursor-down");
+    });
     window.requestAnimationFrame(animateCursor);
 }
 const canvas = document.getElementById("field");

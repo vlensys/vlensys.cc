@@ -439,6 +439,9 @@ h2 {
   align-content: start;
   gap: 14px;
   min-width: 0;
+  width: 100%;
+  max-width: 320px;
+  justify-self: end;
 }
 
 .rail-card {
@@ -524,9 +527,6 @@ code {
     padding: 6px 0 0;
   }
 
-  .post-content {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 700px) {
@@ -555,8 +555,14 @@ code {
   }
 
   .post-content {
+    grid-template-columns: 1fr;
     gap: 16px;
     padding: 18px 16px 18px;
+  }
+
+  .post-rail {
+    max-width: none;
+    justify-self: stretch;
   }
 
   .post-main > p {

@@ -338,7 +338,8 @@ body.cursor-hover .cursor-dot {
 }
 
 .chip:hover::after,
-.chip:focus-visible::after {
+.chip:focus-visible::after,
+.chip.is-current::after {
   transform: scaleX(1);
 }
 

@@ -489,6 +489,10 @@ body.cursor-hover .cursor-dot {
   color: color-mix(in srgb, var(--accent) 34%, var(--fg) 66%);
 }
 
+.hero-side .about-section .section-tag {
+  margin-bottom: 8px;
+}
+
 .hero-music .track-list,
 .hero-side .links-stack {
   padding: 0;
@@ -505,10 +509,10 @@ body.cursor-hover .cursor-dot {
 }
 
 .hero-side .about-copy p {
-  padding: 16px 18px 17px;
+  padding: 14px 18px;
   border-bottom: 1px solid color-mix(in srgb, var(--soft) 88%, transparent);
   font-size: 1rem;
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
 .hero-side .about-copy p:last-child {
@@ -805,11 +809,23 @@ body.cursor-hover .cursor-dot {
 
 .hero-music .music-widget-tag {
   margin-bottom: 12px;
-  padding: 0 0 0 14px;
+  padding: 0 0 0 30px;
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+}
+
+.hero-music .track {
+  padding: 0 18px 0 8px;
+}
+
+.hero-music .track-head {
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+}
+
+.hero-music {
+  padding-left: 10px;
 }
 
 .links-section .section-tag {
@@ -1137,11 +1153,11 @@ body.cursor-hover .cursor-dot {
     grid-template-columns: 1fr;
     min-height: auto;
     gap: 22px;
-    padding: 24px 0 0;
+    padding: 52px 0 0;
   }
 
   .hero-main {
-    gap: 36px;
+    gap: 22px;
   }
 
   .site-header {
@@ -1168,7 +1184,7 @@ body.cursor-hover .cursor-dot {
   }
 
   .hero-copy {
-    padding: 0 0 30px;
+    padding: 26px 0 14px;
     text-align: center;
     max-width: none;
   }
@@ -1320,7 +1336,11 @@ body.cursor-hover .cursor-dot {
   }
 
   .hero {
-    padding-top: 16px;
+    padding-top: 44px;
+  }
+
+  .hero-copy {
+    padding: 22px 0 12px;
   }
 
   .summer-dust {
@@ -1367,6 +1387,9 @@ body.cursor-hover .cursor-dot {
   .track-line {
     font-size: 0.92rem;
     line-height: 1.52;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .track-sep {
@@ -1374,8 +1397,9 @@ body.cursor-hover .cursor-dot {
   }
 
   .track-head {
-    grid-template-columns: 44px minmax(0, 1fr);
-    gap: 12px;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: start;
   }
 
   .track {
@@ -1383,10 +1407,12 @@ body.cursor-hover .cursor-dot {
   }
 
   .track-play {
-    grid-column: 2;
-    justify-self: start;
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    align-self: start;
     font-size: 0.78rem;
-    margin-top: 7px;
+    margin-top: 0;
   }
 
   .links-stack {

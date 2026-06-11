@@ -547,76 +547,151 @@ body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 3
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Nunito";
+  src: url("assets/nunito.ttf") format("truetype");
+  font-display: swap;
+}
+
 @media (max-width: 760px) {
   body, body.night {
     overflow: auto;
-    background: #0a0a0c;
+    background: #08031A;
+    /* tiled purple sky */
+    background-image:
+      radial-gradient(circle at 22% 30%, rgba(252, 234, 255, 0.55) 0 1px, transparent 1.6px),
+      radial-gradient(circle at 70% 65%, rgba(237, 100, 245, 0.35) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 48% 12%, rgba(180, 150, 240, 0.3) 0 0.8px, transparent 1.3px),
+      radial-gradient(circle at 85% 20%, rgba(252, 234, 255, 0.25) 0 0.8px, transparent 1.3px);
+    background-size: 90px 90px, 130px 130px, 70px 70px, 110px 110px;
   }
-  .icons, .window, .taskbar, .startmenu, .boot, .welcome, .sparkle { display: none !important; }
+  .icons, .window, .taskbar, .startmenu, .boot, .welcome { display: none !important; }
+
   .shrine {
     display: block;
-    max-width: 440px;
+    max-width: 480px;
     margin: 0 auto;
-    padding: 16px 10px 26px;
-    font: 11px Verdana, Arial, sans-serif;
-    color: #b8b8c0;
+    padding: 10px 8px 20px;
+    font: 14px "Nunito", Verdana, sans-serif;
+    color: #fceaff;
     text-transform: lowercase;
   }
-  .shrine-head {
+  .shrine > * { margin-bottom: 10px; }
+
+  .sh-banner {
+    display: grid;
+    place-content: center;
+    gap: 2px;
     text-align: center;
-    padding: 16px 10px 12px;
-    border: 1px solid #33333e;
-    background: #101014;
+    height: 130px;
+    background: #232425;
+    background-image:
+      radial-gradient(circle at 18% 38%, rgba(252, 234, 255, 0.7) 0 1px, transparent 1.8px),
+      radial-gradient(circle at 64% 22%, rgba(237, 100, 245, 0.6) 0 1.2px, transparent 2px),
+      radial-gradient(circle at 84% 70%, rgba(180, 150, 240, 0.5) 0 1px, transparent 1.7px),
+      radial-gradient(circle at 38% 76%, rgba(252, 234, 255, 0.4) 0 1px, transparent 1.6px),
+      linear-gradient(160deg, #1b0f3a 0%, #43256E 55%, #2a1452 100%);
+    background-size: 70px 70px, 95px 95px, 80px 80px, 105px 105px, 100% 100%;
   }
-  .shrine-head .pfp {
-    display: block;
-    width: 50px; height: 50px;
-    margin: 0 auto 9px;
-    border: 1px solid #4a4a58;
+  .sh-title {
+    font-size: 30px;
+    font-weight: 800;
+    color: #ED64F5;
+    text-shadow: -3px 3px 1px #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  }
+  .sh-sub {
+    font-style: italic;
+    font-size: 14px;
+    color: #fceaff;
+    text-shadow: -2px 2px 1px #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  }
+
+  .sh-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    gap: 4px 10px;
+    padding: 10px 6px;
+    background: #13092D;
+  }
+  .sh-nav a {
+    color: #ED64F5;
+    font-weight: 800;
+    text-decoration: none;
+  }
+  .sh-nav a:hover { color: #a49cba; text-decoration: underline; }
+
+  .sh-topbar {
+    padding: 8px 10px;
+    background: #13092D;
+    font-size: 12px;
+    color: #fceaff;
+  }
+
+  .sh-main {
+    position: relative;
+    padding: 16px 18px 18px;
+    background: #43256E;
+  }
+  .sh-main h1 {
+    margin-bottom: 8px;
+    font-size: 26px;
+    font-weight: 800;
+    color: #ED64F5;
+  }
+  .sh-main p { line-height: 1.55; padding: 2px 0; padding-right: 70px; }
+  .sh-pfp {
+    position: absolute;
+    top: 18px; right: 16px;
+    width: 56px; height: 56px;
+    border: 1px solid #ED64F5;
     background: url("../pfp.jpg") center/cover;
   }
-  .shrine-head h1 {
-    font: 15px "Silkscreen", Verdana, sans-serif;
-    color: #d875a8;
+
+  .sh-h {
+    margin: 0 0 6px;
+    font-size: 17px;
+    font-weight: 800;
+    color: #ED64F5;
+    padding: 10px 4px 0;
   }
-  .shrine-head .deco { color: #55555f; letter-spacing: 0.3em; font-size: 10px; }
-  .shrine-marquee {
-    margin: 8px 0;
-    padding: 3px 0 4px;
-    border-top: 1px solid #26262e;
-    border-bottom: 1px solid #26262e;
-    overflow: hidden;
-    white-space: nowrap;
-    color: #6e6e7a;
-    font-size: 10px;
+  .sh-box {
+    padding: 10px 12px;
+    border: 1px solid #ED64F5;
+    background: #08031A;
+    font-size: 13px;
   }
-  .shrine-marquee span { display: inline-block; padding-left: 100%; animation: scrolltext 13s linear infinite; }
-  .shrine-box {
-    margin-top: 10px;
-    border: 1px solid #33333e;
-    background: #101014;
-  }
-  .shrine-box h2 {
-    padding: 5px 9px 4px;
-    font: 8px "Silkscreen", Verdana, sans-serif;
-    color: #d875a8;
-    background: #17171d;
-    border-bottom: 1px solid #26262e;
-  }
-  .shrine-box .inner { padding: 9px 10px 10px; line-height: 1.8; }
-  .shrine-box .inner p { padding: 1px 0; }
-  .shrine .star { color: #55555f; }
-  .shrine a { color: #d875a8; text-decoration: none; }
+  .sh-box ul { list-style: none; }
+  .sh-box li { padding: 3px 0; line-height: 1.5; }
+  .sh-box li::before { content: "\2605 "; color: #ED64F5; font-size: 11px; }
+  .shrine a { color: #ED64F5; font-weight: 700; text-decoration: none; }
   .shrine a:hover { text-decoration: underline; }
-  .shrine-track { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px dotted #26262e; }
-  .shrine-track:last-child { border-bottom: 0; }
-  .shrine-track .t { color: #6e6e7a; }
-  .shrine-foot {
-    margin-top: 14px;
+
+  .sh-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding-top: 6px;
+  }
+  .b88 {
+    display: grid;
+    place-items: center;
+    width: 88px;
+    height: 31px;
+    border: 1px solid var(--bb);
+    background: var(--ba);
+    color: var(--bb);
+    font: 8px "Silkscreen", Verdana, sans-serif;
     text-align: center;
-    font-size: 10px;
-    color: #55555f;
-    line-height: 1.8;
+  }
+
+  .sh-foot {
+    margin-bottom: 0;
+    padding: 10px;
+    background: #13092D;
+    text-align: center;
+    font-size: 12px;
+    color: #fceaff;
   }
 }
 </style>
@@ -769,60 +844,68 @@ body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 3
     </div>
   </footer>
 
-  <!-- mobile-only 2000s anime shrine -->
+  <!-- mobile-only: classic neocities layout -->
   <main class="shrine">
-    <span class="sparkle sp1">&#10022;</span>
-    <span class="sparkle sp2">&#10023;</span>
-    <span class="sparkle sp3">&#10022;</span>
-    <span class="sparkle sp4">&#10023;</span>
-
-    <header class="shrine-head">
-      <span class="pfp"></span>
-      <h1>vlensys</h1>
-      <span class="deco">&#9734; &#9825; &#9734;</span>
+    <header class="sh-banner">
+      <span class="sh-title">vlensys</span>
+      <span class="sh-sub">skyblock, music, and whatnot</span>
     </header>
 
-    <div class="shrine-marquee"><span>vlensys.cc &#9734; visit on a computer for the full experience &#9734; thanks for stopping by &#9734;</span></div>
+    <nav class="sh-nav">
+      <a href="#">home</a>
+      <a href="../blog/">blog</a>
+      <a href="https://github.com/vlensys">github</a>
+      <a href="https://discord.com/users/635404584302673933">discord</a>
+      <a href="mailto:me@vlensys.cc">email</a>
+    </nav>
 
-    <section class="shrine-box">
-      <h2>&#9825; about</h2>
-      <div class="inner">
-        <p>i play skyblock, and macro</p>
-        <p>i also edit</p>
-        <p>hypixel ban count: 3</p>
-        <p>example</p>
-      </div>
+    <div class="sh-topbar">status: online &nbsp;&#9733;&nbsp; mood: chill &nbsp;&#9733;&nbsp; hypixel ban count: 3</div>
+
+    <section class="sh-main">
+      <h1>welcome</h1>
+      <p>hi, i'm vlensys. i play skyblock, and macro. i also edit.</p>
+      <p>example</p>
+      <div class="sh-pfp"></div>
     </section>
 
-    <section class="shrine-box">
-      <h2>&#9834; music i like</h2>
-      <div class="inner">
-        <div class="shrine-track"><span>yuragi <span class="t">- i want you by my side</span></span><a href="#">&#9654;</a></div>
-        <div class="shrine-track"><span>arti <span class="t">- &#12363;&#12383;&#12431;&#12428;</span></span><a href="#">&#9654;</a></div>
-        <div class="shrine-track"><span>panchiko <span class="t">- gwen everest</span></span><a href="#">&#9654;</a></div>
-        <div class="shrine-track"><span>what is your name? <span class="t">- that unrequited feeling</span></span><a href="#">&#9654;</a></div>
-        <div class="shrine-track"><span>whirr <span class="t">- leave</span></span><a href="#">&#9654;</a></div>
-      </div>
-    </section>
+    <h2 class="sh-h">updates</h2>
+    <div class="sh-box">
+      <ul>
+        <li><b>may 9</b> - new post: <a href="../blog/">yuri and whatnot</a></li>
+        <li><b>may 9</b> - got banned from hypixel again (30d)</li>
+        <li><b>may 8</b> - new post: <a href="../blog/">m-m-macroing on skyblock</a></li>
+        <li><b>apr 22</b> - new post: <a href="../blog/">shoegaze and tnnan</a></li>
+      </ul>
+    </div>
 
-    <section class="shrine-box">
-      <h2>&#9998; blog</h2>
-      <div class="inner">
-        <p>may 9 &#9734; <a href="../blog/">yuri and whatnot</a></p>
-        <p>may 8 &#9734; <a href="../blog/">m-m-macroing on skyblock</a></p>
-        <p>apr 22 &#9734; <a href="../blog/">shoegaze and tnnan</a></p>
-      </div>
-    </section>
+    <h2 class="sh-h">music i like</h2>
+    <div class="sh-box">
+      <ul>
+        <li>yuragi - <a href="#">i want you by my side</a></li>
+        <li>arti - <a href="#">&#12363;&#12383;&#12431;&#12428;</a></li>
+        <li>panchiko - <a href="#">gwen everest</a></li>
+        <li>what is your name? - <a href="#">that unrequited feeling</a></li>
+        <li>whirr - <a href="#">leave</a></li>
+      </ul>
+    </div>
 
-    <section class="shrine-box">
-      <h2>&#9993; socials</h2>
-      <div class="inner">
-        <p>github &#9734; <a href="https://github.com/vlensys">vlensys</a></p>
-        <p>discord &#9734; <a href="https://discord.com/users/635404584302673933">vlanise</a></p>
-        <p>email &#9734; <a href="mailto:me@vlensys.cc">me@vlensys.cc</a></p>
-        <p>mc user &#9734; simon</p>
-      </div>
-    </section>
+    <h2 class="sh-h">socials</h2>
+    <div class="sh-box">
+      <ul>
+        <li>github: <a href="https://github.com/vlensys">vlensys</a></li>
+        <li>discord: <a href="https://discord.com/users/635404584302673933">vlanise</a></li>
+        <li>email: <a href="mailto:me@vlensys.cc">me@vlensys.cc</a></li>
+        <li>mc user: simon</li>
+      </ul>
+    </div>
+
+    <div class="sh-buttons">
+      <span class="b88" style="--ba:#13092D;--bb:#ED64F5;">vlensys.cc</span>
+      <span class="b88" style="--ba:#0a1a0a;--bb:#7de07d;">made with notepad</span>
+      <span class="b88" style="--ba:#1a0a0a;--bb:#e07d7d;">banned x3</span>
+    </div>
+
+    <footer class="sh-foot">vlensys &#9733; thanks for visiting</footer>
   </main>
 
 <script>

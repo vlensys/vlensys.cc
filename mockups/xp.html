@@ -533,17 +533,29 @@ body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 3
   border: 1px solid rgba(255,255,255,0.6);
 }
 
-/* ---- mobile: 2000s anime shrine ---- */
+/* ---- mobile: dark y2k anime shrine ---- */
 .shrine { display: none; }
+
+@font-face {
+  font-family: "Silkscreen";
+  src: url("assets/silkscreen.ttf") format("truetype");
+  font-display: swap;
+}
+@font-face {
+  font-family: "VT323";
+  src: url("assets/vt323.ttf") format("truetype");
+  font-display: swap;
+}
 
 @media (max-width: 760px) {
   body, body.night {
     overflow: auto;
-    background: #ffe3f0;
+    background: #0b0712;
     background-image:
-      radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.8) 0 1.5px, transparent 2px),
-      radial-gradient(circle at 75% 75%, rgba(255, 182, 213, 0.8) 0 1px, transparent 1.5px);
-    background-size: 28px 28px, 36px 36px;
+      radial-gradient(circle at 25% 25%, rgba(255, 124, 194, 0.35) 0 1px, transparent 1.6px),
+      radial-gradient(circle at 75% 75%, rgba(150, 120, 220, 0.3) 0 1px, transparent 1.4px),
+      linear-gradient(transparent 0 97%, rgba(255, 124, 194, 0.03) 100%);
+    background-size: 34px 34px, 46px 46px, 100% 4px;
   }
   .icons, .window, .taskbar, .startmenu, .boot, .welcome { display: none !important; }
   .shrine {
@@ -551,69 +563,79 @@ body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 3
     max-width: 480px;
     margin: 0 auto;
     padding: 14px 12px 30px;
-    font: 12px Verdana, "MS PGothic", sans-serif;
-    color: #6b3b52;
+    font: 17px "VT323", "Lucida Console", monospace;
+    color: #dcc9ec;
     text-transform: lowercase;
   }
   .shrine-head {
     text-align: center;
     padding: 18px 10px 14px;
-    border: 2px dotted #ff86b6;
-    background: #fff0f7;
+    border: 2px dotted #ff5ca8;
+    background: #150e1f;
     border-radius: 4px;
+    box-shadow: 0 0 14px rgba(255, 92, 168, 0.18), inset 0 0 22px rgba(255, 92, 168, 0.05);
   }
   .shrine-head .pfp {
     display: block;
     width: 56px; height: 56px;
-    margin: 0 auto 8px;
-    border: 2px solid #ff86b6;
+    margin: 0 auto 10px;
+    border: 2px solid #ff5ca8;
     border-radius: 50%;
     background: url("../pfp.jpg") center/cover;
+    box-shadow: 0 0 12px rgba(255, 92, 168, 0.45);
   }
-  .shrine-head h1 { font: bold 22px Verdana, sans-serif; color: #e0407e; letter-spacing: 0.12em; }
-  .shrine-head .deco { color: #ffa9c9; letter-spacing: 0.4em; font-size: 11px; }
+  .shrine-head h1 {
+    font: 19px "Silkscreen", "Lucida Console", monospace;
+    color: #ff7ec2;
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 9px rgba(255, 92, 168, 0.7);
+  }
+  .shrine-head .deco { color: #8a6fb8; letter-spacing: 0.4em; font-size: 13px; }
   .shrine-marquee {
     margin: 10px 0;
     padding: 4px 0 5px;
-    border-top: 1px dashed #ffa9c9;
-    border-bottom: 1px dashed #ffa9c9;
+    border-top: 1px dashed #5d4a80;
+    border-bottom: 1px dashed #5d4a80;
     overflow: hidden;
     white-space: nowrap;
-    color: #d4538a;
-    font-size: 11px;
+    color: #b89cd6;
+    font-size: 15px;
   }
   .shrine-marquee span { display: inline-block; padding-left: 100%; animation: scrolltext 13s linear infinite; }
   .shrine-box {
     margin-top: 14px;
-    border: 2px dotted #ff86b6;
-    background: #fffafd;
+    border: 2px dotted #6d4a93;
+    background: #130d1d;
     border-radius: 4px;
+    box-shadow: 0 0 10px rgba(120, 80, 190, 0.12);
   }
   .shrine-box h2 {
-    padding: 6px 10px;
-    font-size: 12px;
-    color: #fff;
-    background: linear-gradient(90deg, #ff86b6, #ffb6d4);
-    letter-spacing: 0.15em;
+    padding: 7px 10px 6px;
+    font: 11px "Silkscreen", "Lucida Console", monospace;
+    color: #ff7ec2;
+    background: #1d1229;
+    border-bottom: 1px solid #38264e;
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 7px rgba(255, 92, 168, 0.55);
   }
-  .shrine-box .inner { padding: 10px 12px 12px; line-height: 1.9; }
+  .shrine-box .inner { padding: 10px 12px 12px; line-height: 1.75; }
   .shrine-box .inner p { padding: 2px 0; }
-  .shrine .star { color: #ffa9c9; }
-  .shrine a { color: #d4538a; }
-  .shrine-track { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px dashed #ffd9e9; }
+  .shrine .star { color: #8a6fb8; }
+  .shrine a { color: #ff7ec2; text-shadow: 0 0 6px rgba(255, 92, 168, 0.35); }
+  .shrine-track { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px dashed #2c1f3e; }
   .shrine-track:last-child { border-bottom: 0; }
-  .shrine-track .t { color: #b06a8a; }
+  .shrine-track .t { color: #9b86b3; }
   .shrine-foot {
     margin-top: 18px;
     text-align: center;
-    font-size: 10px;
-    color: #c98aa8;
+    font-size: 14px;
+    color: #6d5a8a;
     line-height: 1.8;
   }
-  .sparkle { position: fixed; font-size: 13px; color: #ffb6d4; animation: twinkle 2.6s ease-in-out infinite; pointer-events: none; }
+  .sparkle { position: fixed; font-size: 13px; color: #ff7ec2; text-shadow: 0 0 8px rgba(255, 92, 168, 0.8); animation: twinkle 2.6s ease-in-out infinite; pointer-events: none; }
   .sp1 { top: 8%; left: 7%; }
-  .sp2 { top: 16%; right: 9%; animation-delay: 0.9s; }
-  .sp3 { top: 58%; left: 5%; animation-delay: 1.7s; }
+  .sp2 { top: 16%; right: 9%; animation-delay: 0.9s; color: #9b86e8; }
+  .sp3 { top: 58%; left: 5%; animation-delay: 1.7s; color: #9b86e8; }
   .sp4 { top: 78%; right: 7%; animation-delay: 0.4s; }
   @keyframes twinkle { 0%, 100% { opacity: 0.25; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.15); } }
 }

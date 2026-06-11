@@ -550,94 +550,74 @@ body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 3
 @media (max-width: 760px) {
   body, body.night {
     overflow: auto;
-    background: #0b0712;
-    background-image:
-      radial-gradient(circle at 25% 25%, rgba(255, 124, 194, 0.35) 0 1px, transparent 1.6px),
-      radial-gradient(circle at 75% 75%, rgba(150, 120, 220, 0.3) 0 1px, transparent 1.4px),
-      linear-gradient(transparent 0 97%, rgba(255, 124, 194, 0.03) 100%);
-    background-size: 34px 34px, 46px 46px, 100% 4px;
+    background: #0a0a0c;
   }
-  .icons, .window, .taskbar, .startmenu, .boot, .welcome { display: none !important; }
+  .icons, .window, .taskbar, .startmenu, .boot, .welcome, .sparkle { display: none !important; }
   .shrine {
     display: block;
-    max-width: 480px;
+    max-width: 440px;
     margin: 0 auto;
-    padding: 14px 12px 30px;
-    font: 17px "VT323", "Lucida Console", monospace;
-    color: #dcc9ec;
+    padding: 16px 10px 26px;
+    font: 11px Verdana, Arial, sans-serif;
+    color: #b8b8c0;
     text-transform: lowercase;
   }
   .shrine-head {
     text-align: center;
-    padding: 18px 10px 14px;
-    border: 2px dotted #ff5ca8;
-    background: #150e1f;
-    border-radius: 4px;
-    box-shadow: 0 0 14px rgba(255, 92, 168, 0.18), inset 0 0 22px rgba(255, 92, 168, 0.05);
+    padding: 16px 10px 12px;
+    border: 1px solid #33333e;
+    background: #101014;
   }
   .shrine-head .pfp {
     display: block;
-    width: 56px; height: 56px;
-    margin: 0 auto 10px;
-    border: 2px solid #ff5ca8;
-    border-radius: 50%;
+    width: 50px; height: 50px;
+    margin: 0 auto 9px;
+    border: 1px solid #4a4a58;
     background: url("../pfp.jpg") center/cover;
-    box-shadow: 0 0 12px rgba(255, 92, 168, 0.45);
   }
   .shrine-head h1 {
-    font: 19px "Silkscreen", "Lucida Console", monospace;
-    color: #ff7ec2;
-    letter-spacing: 0.08em;
-    text-shadow: 0 0 9px rgba(255, 92, 168, 0.7);
+    font: 15px "Silkscreen", Verdana, sans-serif;
+    color: #d875a8;
   }
-  .shrine-head .deco { color: #8a6fb8; letter-spacing: 0.4em; font-size: 13px; }
+  .shrine-head .deco { color: #55555f; letter-spacing: 0.3em; font-size: 10px; }
   .shrine-marquee {
-    margin: 10px 0;
-    padding: 4px 0 5px;
-    border-top: 1px dashed #5d4a80;
-    border-bottom: 1px dashed #5d4a80;
+    margin: 8px 0;
+    padding: 3px 0 4px;
+    border-top: 1px solid #26262e;
+    border-bottom: 1px solid #26262e;
     overflow: hidden;
     white-space: nowrap;
-    color: #b89cd6;
-    font-size: 15px;
+    color: #6e6e7a;
+    font-size: 10px;
   }
   .shrine-marquee span { display: inline-block; padding-left: 100%; animation: scrolltext 13s linear infinite; }
   .shrine-box {
-    margin-top: 14px;
-    border: 2px dotted #6d4a93;
-    background: #130d1d;
-    border-radius: 4px;
-    box-shadow: 0 0 10px rgba(120, 80, 190, 0.12);
+    margin-top: 10px;
+    border: 1px solid #33333e;
+    background: #101014;
   }
   .shrine-box h2 {
-    padding: 7px 10px 6px;
-    font: 11px "Silkscreen", "Lucida Console", monospace;
-    color: #ff7ec2;
-    background: #1d1229;
-    border-bottom: 1px solid #38264e;
-    letter-spacing: 0.1em;
-    text-shadow: 0 0 7px rgba(255, 92, 168, 0.55);
+    padding: 5px 9px 4px;
+    font: 8px "Silkscreen", Verdana, sans-serif;
+    color: #d875a8;
+    background: #17171d;
+    border-bottom: 1px solid #26262e;
   }
-  .shrine-box .inner { padding: 10px 12px 12px; line-height: 1.75; }
-  .shrine-box .inner p { padding: 2px 0; }
-  .shrine .star { color: #8a6fb8; }
-  .shrine a { color: #ff7ec2; text-shadow: 0 0 6px rgba(255, 92, 168, 0.35); }
-  .shrine-track { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px dashed #2c1f3e; }
+  .shrine-box .inner { padding: 9px 10px 10px; line-height: 1.8; }
+  .shrine-box .inner p { padding: 1px 0; }
+  .shrine .star { color: #55555f; }
+  .shrine a { color: #d875a8; text-decoration: none; }
+  .shrine a:hover { text-decoration: underline; }
+  .shrine-track { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px dotted #26262e; }
   .shrine-track:last-child { border-bottom: 0; }
-  .shrine-track .t { color: #9b86b3; }
+  .shrine-track .t { color: #6e6e7a; }
   .shrine-foot {
-    margin-top: 18px;
+    margin-top: 14px;
     text-align: center;
-    font-size: 14px;
-    color: #6d5a8a;
+    font-size: 10px;
+    color: #55555f;
     line-height: 1.8;
   }
-  .sparkle { position: fixed; font-size: 13px; color: #ff7ec2; text-shadow: 0 0 8px rgba(255, 92, 168, 0.8); animation: twinkle 2.6s ease-in-out infinite; pointer-events: none; }
-  .sp1 { top: 8%; left: 7%; }
-  .sp2 { top: 16%; right: 9%; animation-delay: 0.9s; color: #9b86e8; }
-  .sp3 { top: 58%; left: 5%; animation-delay: 1.7s; color: #9b86e8; }
-  .sp4 { top: 78%; right: 7%; animation-delay: 0.4s; }
-  @keyframes twinkle { 0%, 100% { opacity: 0.25; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.15); } }
 }
 </style>
 </head>

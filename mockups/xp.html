@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>vlensys</title>
+<style>
+:root {
+  --mono: "Courier New", "Lucida Console", ui-monospace, monospace;
+  --ui: Tahoma, "MS Sans Serif", Verdana, sans-serif;
+
+  /* luna (day) */
+  --title-grad: linear-gradient(180deg, #0997ff 0%, #0053ee 8%, #0050ee 40%, #0066ff 88%, #0066ff 93%, #005bff 95%, #003dd7 96%, #003dd7 100%);
+  --win-border: #0831d9;
+  --face: #ece9d8;
+  --content-bg: #ffffff;
+  --content-ink: #1a1a1a;
+  --content-dim: #6b6b6b;
+  --row-line: #e4e0cf;
+  --taskbar-grad: linear-gradient(180deg, #518ef7 0%, #3a77e8 4%, #2159d6 8%, #2159d6 86%, #1941a5 100%);
+  --tray-grad: linear-gradient(180deg, #4ba6f5 0%, #1290e9 8%, #0f7fe0 86%, #0a5cb0 100%);
+  --tab-grad: linear-gradient(180deg, #5a93f0 0%, #3a76e3 8%, #2b66db 86%, #2155c4 100%);
+  --menu-right: #d3e5fa;
+  --menu-right-ink: #0a246a;
+  --menu-edge: #95bdee;
+  --sel: #316ac5;
+}
+
+body.night {
+  /* royale noir-ish */
+  --title-grad: linear-gradient(180deg, #6b6f7d 0%, #3c3f4c 8%, #2e3останov 0, #2e313d 40%, #23252f 96%, #1b1d25 100%);
+  --title-grad: linear-gradient(180deg, #6b6f7d 0%, #3c3f4c 8%, #2e313d 40%, #23252f 96%, #1b1d25 100%);
+  --win-border: #1b1d25;
+  --face: #3a3d49;
+  --content-bg: #15171e;
+  --content-ink: #d8dce8;
+  --content-dim: #8a90a3;
+  --row-line: #2a2d38;
+  --taskbar-grad: linear-gradient(180deg, #4a4e5e 0%, #33363f 8%, #24262e 86%, #16171d 100%);
+  --tray-grad: linear-gradient(180deg, #565a6b 0%, #3a3d49 8%, #2c2e38 86%, #1d1f27 100%);
+  --tab-grad: linear-gradient(180deg, #4d5163 0%, #393c49 8%, #2e303c 86%, #232531 100%);
+  --menu-right: #262934;
+  --menu-right-ink: #c9cede;
+  --menu-edge: #44485a;
+  --sel: #5a617a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+
+body {
+  overflow: hidden;
+  font-family: var(--ui);
+  font-size: 12px;
+  /* bliss */
+  background:
+    radial-gradient(ellipse 90% 34% at 18% 108%, #5ea73c 0 55%, transparent 78%),
+    radial-gradient(ellipse 120% 42% at 78% 116%, #7dc24f 0 50%, #4f9433 62%, transparent 76%),
+    radial-gradient(ellipse 60% 18% at 45% 99%, #8ed162 0 60%, transparent 100%),
+    radial-gradient(circle at 22% 16%, rgba(255,255,255,0.55), transparent 22%),
+    radial-gradient(circle at 67% 9%, rgba(255,255,255,0.4), transparent 16%),
+    linear-gradient(180deg, #2766b8 0%, #5d9bd3 38%, #9fc8ea 68%, #cfe5f3 100%);
+  transition: background 500ms ease;
+}
+
+body.night {
+  background:
+    radial-gradient(ellipse 90% 34% at 18% 108%, #16301a 0 55%, transparent 78%),
+    radial-gradient(ellipse 120% 42% at 78% 116%, #1d3d22 0 50%, #122815 62%, transparent 76%),
+    radial-gradient(circle at 76% 14%, rgba(245, 248, 255, 0.9) 0 26px, rgba(200, 220, 255, 0.25) 34px, transparent 60px),
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.05), transparent 30%),
+    linear-gradient(180deg, #060d20 0%, #0d1b38 45%, #14264a 75%, #1b3055 100%);
+}
+
+/* floating bubbles (day) / fireflies (night) — the petals, reborn */
+.bubble {
+  position: fixed;
+  bottom: -8vh;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,0.95) 0 12%, transparent 38%),
+    radial-gradient(circle at 50% 50%, rgba(210,240,255,0.12), rgba(170,220,250,0.22));
+  animation: rise linear infinite;
+}
+body.night .bubble {
+  width: 4px !important; height: 4px !important; border: 0;
+  background: radial-gradient(circle, #ffe9a8 0 40%, transparent 75%);
+  box-shadow: 0 0 7px rgba(255, 233, 168, 0.85);
+}
+.b1 { left: 8%;  width: 30px; height: 30px; animation-duration: 21s; animation-delay: -4s; }
+.b2 { left: 26%; width: 16px; height: 16px; animation-duration: 27s; animation-delay: -16s; }
+.b3 { left: 47%; width: 24px; height: 24px; animation-duration: 23s; animation-delay: -8s; }
+.b4 { left: 69%; width: 13px; height: 13px; animation-duration: 29s; animation-delay: -20s; }
+.b5 { left: 86%; width: 27px; height: 27px; animation-duration: 22s; animation-delay: -6s; }
+@keyframes rise {
+  0% { transform: translate3d(0,0,0); opacity: 0; }
+  8% { opacity: 0.85; }
+  92% { opacity: 0.85; }
+  100% { transform: translate3d(26px, -112vh, 0); opacity: 0; }
+}
+
+/* ---- desktop icons ---- */
+.icons {
+  position: fixed;
+  top: 16px;
+  left: 12px;
+  display: grid;
+  gap: 12px;
+  z-index: 1;
+}
+.icon {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 84px;
+  padding: 6px 2px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-family: var(--ui);
+  font-size: 11px;
+  color: #fff;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.75);
+  cursor: pointer;
+}
+.icon:hover { background: rgba(49, 106, 197, 0.3); border-color: rgba(255,255,255,0.35); }
+.icon:focus { background: rgba(49, 106, 197, 0.55); border: 1px dotted #fff; outline: none; }
+.ic { width: 34px; height: 34px; position: relative; filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.35)); }
+
+/* notepad icon: white page, folded corner, blue lines */
+.ic-note { background: linear-gradient(180deg, #fff, #e8e8e8); border: 1px solid #9aa0a8; border-radius: 2px; }
+.ic-note::before {
+  content: ""; position: absolute; inset: 7px 6px auto 6px; height: 2px;
+  background: #7a96c0; box-shadow: 0 6px 0 #7a96c0, 0 12px 0 #7a96c0, 0 18px 0 #b9c6da;
+}
+.ic-note::after {
+  content: ""; position: absolute; top: -1px; right: -1px; width: 10px; height: 10px;
+  background: linear-gradient(225deg, transparent 48%, #c8ccd2 50%, #f2f2f2 60%);
+}
+
+/* media player icon: glossy orange/blue orb */
+.ic-wmp { border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 26%, rgba(255,255,255,0.95) 0 16%, transparent 42%),
+    conic-gradient(#f7941d 0 90deg, #2a7de1 90deg 200deg, #57b947 200deg 290deg, #f7941d 290deg);
+  border: 1px solid rgba(0,0,0,0.3);
+}
+.ic-wmp::before {
+  content: ""; position: absolute; top: 50%; left: 54%; transform: translate(-50%, -50%);
+  border-left: 12px solid #fff; border-top: 8px solid transparent; border-bottom: 8px solid transparent;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.4));
+}
+
+/* internet explorer icon: blue e */
+.ic-ie { display: grid; place-items: center; color: #2a7de1; font: bold italic 30px "Times New Roman", serif; text-shadow: 0 1px 0 rgba(255,255,255,0.6); }
+.ic-ie::after { content: ""; position: absolute; top: 4px; left: -2px; right: -2px; height: 11px; border: 2.5px solid #f3b53c; border-bottom: 0; border-radius: 50% 50% 0 0 / 100% 100% 0 0; transform: rotate(-14deg); }
+
+/* folder icon */
+.ic-folder { background: linear-gradient(180deg, #ffe9a3 0%, #f7c64a 55%, #e8a92e 100%); border: 1px solid #b07f1d; border-radius: 2px 4px 3px 3px; margin-top: 4px; height: 28px; }
+.ic-folder::before { content: ""; position: absolute; top: -5px; left: 0; width: 15px; height: 6px; background: linear-gradient(180deg, #ffe9a3, #f7c64a); border: 1px solid #b07f1d; border-bottom: 0; border-radius: 3px 6px 0 0; }
+
+/* recycle bin icon */
+.ic-bin { background: linear-gradient(180deg, #dfe8f0 0%, #aebdcb 60%, #8fa2b3 100%); border: 1px solid #5f7385; border-radius: 4px 4px 7px 7px; margin-top: 3px; height: 30px; }
+.ic-bin::before { content: ""; position: absolute; top: 3px; left: 4px; right: 4px; bottom: 4px; background: repeating-linear-gradient(90deg, transparent 0 4px, rgba(82, 104, 124, 0.45) 4px 6px); border-radius: 2px; }
+.ic-bin::after { content: ""; position: absolute; top: -3px; left: -2px; right: -2px; height: 4px; background: #c2d0dc; border: 1px solid #5f7385; border-radius: 2px; }
+
+/* ---- windows (luna) ---- */
+.window {
+  position: fixed;
+  min-width: 300px;
+  border: 3px solid var(--win-border);
+  border-top: 0;
+  border-radius: 8px 8px 3px 3px;
+  background: var(--face);
+  box-shadow: 2px 6px 18px rgba(10, 30, 70, 0.4);
+  z-index: 2;
+}
+.window.hidden { display: none; }
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 4px 0 8px;
+  margin: 0 -3px;
+  border-radius: 8px 8px 0 0;
+  background: var(--title-grad);
+  cursor: grab;
+  user-select: none;
+}
+.titlebar:active { cursor: grabbing; }
+.title {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  font: bold 12px "Trebuchet MS", var(--ui);
+  color: #fff;
+  text-shadow: 1px 1px 1px rgba(10, 24, 90, 0.7);
+}
+.winbtns { display: flex; gap: 2px; }
+.winbtn {
+  width: 21px;
+  height: 21px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 3px;
+  font: bold 11px var(--ui);
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+  cursor: pointer;
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255,255,255,0.55) 0 20%, transparent 50%),
+    linear-gradient(180deg, #7ea4ee 0%, #3c6cd6 45%, #2258c8 50%, #1941a5 100%);
+}
+body.night .winbtn { background:
+    radial-gradient(circle at 30% 22%, rgba(255,255,255,0.35) 0 20%, transparent 50%),
+    linear-gradient(180deg, #6a6f80 0%, #43475a 45%, #34374a 50%, #23252f 100%); }
+.winbtn.close { background:
+    radial-gradient(circle at 30% 22%, rgba(255,255,255,0.55) 0 20%, transparent 50%),
+    linear-gradient(180deg, #f0a08a 0%, #e16a4a 45%, #d4502c 50%, #aa3416 100%); }
+
+/* menu bar (notepad etc.) */
+.menubar {
+  display: flex;
+  gap: 0;
+  padding: 2px 4px;
+  border-bottom: 1px solid var(--row-line);
+  font-size: 11px;
+  color: var(--content-ink);
+  background: var(--face);
+}
+body.night .menubar { color: #c9cede; }
+.menubar span { padding: 2px 7px; cursor: default; }
+.menubar span:hover { background: var(--sel); color: #fff; }
+
+.winbody {
+  background: var(--content-bg);
+  color: var(--content-ink);
+  font-family: var(--mono);
+  font-size: 13px;
+  text-transform: lowercase;
+  margin: 0 0 0 0;
+}
+
+.statusbar {
+  display: flex;
+  gap: 14px;
+  padding: 3px 8px;
+  border-top: 1px solid var(--row-line);
+  background: var(--face);
+  font-size: 11px;
+  color: var(--content-dim);
+  font-family: var(--ui);
+  text-transform: lowercase;
+}
+body.night .statusbar { color: #8a90a3; }
+
+/* notepad: about.txt */
+#win-about { top: 8%; left: 17%; width: 350px; }
+#win-about .winbody { padding: 8px 10px 14px; line-height: 1.9; }
+.caret::after { content: "_"; animation: blink 1.1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* media player */
+#win-music { top: 13%; right: 7%; width: 440px; }
+.lcd {
+  margin: 0;
+  padding: 7px 12px;
+  background: #0c2113;
+  color: #6ee88f;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  overflow: hidden;
+  white-space: nowrap;
+  border-bottom: 2px solid #1941a5;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+}
+body.night .lcd { border-bottom-color: #23252f; }
+.lcd-text { display: inline-block; padding-left: 100%; animation: scrolltext 15s linear infinite; }
+@keyframes scrolltext { to { transform: translateX(-100%); } }
+.track {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  gap: 8px;
+  align-items: baseline;
+  padding: 7px 12px 8px;
+  border-bottom: 1px solid var(--row-line);
+}
+.track:last-of-type { border-bottom: 0; }
+.track .no { color: var(--content-dim); font-size: 11px; }
+.track .dim { color: var(--content-dim); }
+.play {
+  border: 1px solid #7a96c0;
+  border-radius: 3px;
+  padding: 1px 10px 2px;
+  font: 11px var(--ui);
+  text-transform: lowercase;
+  color: #1a1a1a;
+  background: linear-gradient(180deg, #fff 0%, #ece9d8 50%, #dcd8c8 100%);
+  cursor: pointer;
+}
+.play:hover { border-color: #f3a335; box-shadow: 0 0 0 1px rgba(243, 163, 53, 0.5) inset; }
+body.night .play { color: #d8dce8; border-color: #565a6b; background: linear-gradient(180deg, #4a4e5e, #33363f 50%, #24262e); }
+
+/* explorer-style socials with task pane */
+#win-socials { bottom: 16%; left: 7%; width: 430px; }
+.explorer { display: grid; grid-template-columns: 140px 1fr; }
+.taskpane {
+  padding: 12px 10px;
+  background: linear-gradient(180deg, #7aa3e5 0%, #6285d6 100%);
+  font: 11px var(--ui);
+  color: #fff;
+  text-transform: lowercase;
+}
+body.night .taskpane { background: linear-gradient(180deg, #3a3e4e 0%, #2a2d38 100%); }
+.taskpane h4 {
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(90deg, #fff, #cfdef7);
+  color: #215dc6;
+  font-size: 11px;
+}
+body.night .taskpane h4 { background: linear-gradient(90deg, #4a4e5e, #33363f); color: #c9cede; }
+.taskpane p { padding: 3px 8px; line-height: 1.5; }
+.srows { padding: 6px 0; }
+.srow {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 10px;
+  padding: 8px 14px 9px;
+  border-bottom: 1px solid var(--row-line);
+  color: var(--content-ink);
+  text-decoration: none;
+}
+.srow:hover { background: var(--sel); color: #fff; }
+.srow:hover .k { color: rgba(255,255,255,0.8); }
+.srow:last-child { border-bottom: 0; }
+.srow .k { color: var(--content-dim); }
+
+/* ie6-style blog */
+#win-blog { bottom: 9%; right: 19%; width: 400px; }
+.addressbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--row-line);
+  background: var(--face);
+  font: 11px var(--ui);
+  color: var(--content-ink);
+}
+body.night .addressbar { color: #c9cede; }
+.addressbar .field {
+  flex: 1;
+  padding: 3px 6px;
+  border: 1px solid #7a96c0;
+  background: var(--content-bg);
+  color: var(--content-ink);
+  font-family: var(--ui);
+}
+.addressbar .go {
+  border: 1px solid #7a96c0;
+  border-radius: 3px;
+  padding: 2px 9px;
+  font: 11px var(--ui);
+  background: linear-gradient(180deg, #fff, #ece9d8 50%, #dcd8c8);
+  cursor: pointer;
+}
+body.night .addressbar .go { color: #d8dce8; border-color: #565a6b; background: linear-gradient(180deg, #4a4e5e, #33363f 50%, #24262e); }
+.post { padding: 9px 14px 10px; border-bottom: 1px solid var(--row-line); }
+.post:last-of-type { border-bottom: 0; }
+.post .date { font-size: 11px; color: var(--content-dim); display: block; }
+.post a { color: #1558c4; }
+body.night .post a { color: #7fb0f5; }
+
+/* error dialog */
+#win-error { top: 36%; left: 37%; width: 320px; z-index: 6; }
+#win-error .winbody { display: grid; grid-template-columns: 44px 1fr; gap: 12px; padding: 16px 14px; align-items: center; }
+.err-ic {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: radial-gradient(circle at 32% 26%, #ff8d7e, #d62b18 70%);
+  border: 1px solid #8e1505;
+  display: grid; place-items: center;
+  color: #fff; font: bold 19px var(--ui);
+}
+#win-error .btnrow { grid-column: 1 / -1; display: flex; justify-content: center; padding-bottom: 4px; }
+.xpbtn {
+  min-width: 76px;
+  padding: 3px 12px 4px;
+  border: 1px solid #003c74;
+  border-radius: 3px;
+  font: 11px var(--ui);
+  text-transform: lowercase;
+  background: linear-gradient(180deg, #fff 0%, #ece9d8 50%, #dcd8c8 100%);
+  cursor: pointer;
+}
+.xpbtn:hover { border-color: #f3a335; box-shadow: 0 0 0 2px rgba(243, 163, 53, 0.35); }
+body.night .xpbtn { color: #d8dce8; border-color: #565a6b; background: linear-gradient(180deg, #4a4e5e, #33363f 50%, #24262e); }
+
+/* ---- taskbar ---- */
+.taskbar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: stretch;
+  height: 32px;
+  background: var(--taskbar-grad);
+  z-index: 10;
+}
+.start {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 22px 2px 10px;
+  border: 0;
+  border-radius: 0 12px 12px 0;
+  font: bold italic 16px "Trebuchet MS", var(--ui);
+  color: #fff;
+  text-shadow: 1px 1px 2px rgba(0, 40, 0, 0.6);
+  cursor: pointer;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,0.5) 0 8%, transparent 40%),
+    linear-gradient(180deg, #8fd17a 0%, #4eae3a 12%, #379537 45%, #2c8528 55%, #1f6b1c 100%);
+  box-shadow: 1px 0 4px rgba(0, 20, 60, 0.5);
+}
+body.night .start { filter: saturate(0.45) brightness(0.8); }
+.flag { display: grid; grid-template-columns: 7px 7px; gap: 1.5px; transform: skewX(-8deg); }
+.flag i { height: 6.5px; border-radius: 1.5px 2.5px 2px 2px; }
+.flag i:nth-child(1) { background: #f65c5c; }
+.flag i:nth-child(2) { background: #8ee06b; }
+.flag i:nth-child(3) { background: #6db1f7; }
+.flag i:nth-child(4) { background: #ffd25e; }
+
+.tabs { display: flex; gap: 3px; align-items: center; padding: 0 4px; flex: 1; }
+.tab {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 12px;
+  min-width: 110px;
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 3px;
+  font: 11px var(--ui);
+  color: #fff;
+  text-transform: lowercase;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+  background: var(--tab-grad);
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.tab.off { opacity: 0.55; box-shadow: none; }
+.tray {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px 0 14px;
+  background: var(--tray-grad);
+  border-left: 1px solid rgba(255,255,255,0.3);
+  box-shadow: inset 2px 0 3px rgba(0, 20, 60, 0.3);
+}
+.tray-ic {
+  width: 17px; height: 17px;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background: radial-gradient(circle at 35% 30%, #fffbe8 0 26%, #f5d76a 60%, #c9a52e 100%);
+  box-shadow: 0 0 4px rgba(255, 240, 180, 0.6);
+}
+body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 30%, #aebdd8 70%, #6e7f9e 100%); }
+.clock { font: 11px var(--ui); color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,0.4); }
+
+/* ---- start menu ---- */
+.startmenu {
+  position: fixed;
+  left: 0;
+  bottom: 32px;
+  width: 380px;
+  border: 1px solid var(--win-border);
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
+  background: var(--content-bg);
+  box-shadow: 3px -2px 16px rgba(10, 30, 70, 0.45);
+  z-index: 11;
+  font-family: var(--ui);
+}
+.startmenu.hidden { display: none; }
+.sm-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: var(--title-grad);
+  color: #fff;
+  font: bold 13px "Trebuchet MS", var(--ui);
+  text-shadow: 1px 1px 1px rgba(10,24,90,0.7);
+}
+.sm-head .pfp {
+  width: 36px; height: 36px;
+  border: 2px solid rgba(255,255,255,0.85);
+  border-radius: 4px;
+  background: url("../pfp.jpg") center/cover;
+}
+.sm-cols { display: grid; grid-template-columns: 1.1fr 1fr; min-height: 230px; }
+.sm-left { background: var(--content-bg); padding: 8px 0; border-right: 1px solid var(--menu-edge); }
+.sm-right { background: var(--menu-right); padding: 8px 0; }
+.sm-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 12px;
+  border: 0;
+  background: transparent;
+  font: 11px var(--ui);
+  text-transform: lowercase;
+  color: var(--content-ink);
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+}
+.sm-right .sm-item { color: var(--menu-right-ink); font-weight: bold; }
+.sm-item:hover { background: var(--sel); color: #fff !important; }
+.sm-item .mini {
+  width: 22px; height: 22px;
+  border-radius: 3px;
+  flex: none;
+  background: linear-gradient(160deg, var(--mi-a, #6db1f7), var(--mi-b, #2a7de1));
+  border: 1px solid rgba(0,0,0,0.25);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+  display: grid; place-items: center;
+  color: #fff; font-size: 12px; font-weight: bold;
+}
+.sm-sep { margin: 6px 10px; border-top: 1px solid var(--row-line); }
+.sm-right .sm-sep { border-color: var(--menu-edge); }
+.sm-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  padding: 7px 12px;
+  background: var(--title-grad);
+  color: #fff;
+  font: 11px var(--ui);
+}
+.sm-foot button {
+  display: flex; align-items: center; gap: 6px;
+  border: 0; background: transparent; color: #fff;
+  font: inherit; cursor: pointer; text-transform: lowercase;
+}
+.sm-foot .off-ic {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: radial-gradient(circle at 32% 26%, #ff9a8a, #d62b18 75%);
+  border: 1px solid rgba(255,255,255,0.6);
+}
+
+/* balloon tip */
+.balloon {
+  position: fixed;
+  right: 10px;
+  bottom: 44px;
+  width: 250px;
+  padding: 10px 12px 12px;
+  border: 1px solid #000;
+  border-radius: 8px;
+  background: #ffffe1;
+  color: #000;
+  font: 11px var(--ui);
+  text-transform: lowercase;
+  box-shadow: 2px 3px 10px rgba(0,0,0,0.35);
+  z-index: 12;
+}
+.balloon.hidden { display: none; }
+.balloon::after {
+  content: "";
+  position: absolute;
+  right: 26px;
+  bottom: -11px;
+  border: 11px solid transparent;
+  border-top-color: #ffffe1;
+  border-right-width: 4px;
+}
+.balloon b { display: block; margin-bottom: 4px; }
+.balloon .bx {
+  position: absolute; top: 5px; right: 6px;
+  border: 1px solid #888; background: #ffffe1;
+  width: 15px; height: 15px;
+  font: bold 9px var(--ui); cursor: pointer;
+}
+</style>
+</head>
+<body>
+  <span class="bubble b1"></span><span class="bubble b2"></span><span class="bubble b3"></span><span class="bubble b4"></span><span class="bubble b5"></span>
+
+  <nav class="icons" aria-label="desktop">
+    <button class="icon" data-win="win-about"><span class="ic ic-note"></span><span>about.txt</span></button>
+    <button class="icon" data-win="win-music"><span class="ic ic-wmp"></span><span>media player</span></button>
+    <button class="icon" data-win="win-blog"><span class="ic ic-ie">e</span><span>blog</span></button>
+    <button class="icon" data-win="win-socials"><span class="ic ic-folder"></span><span>socials</span></button>
+    <button class="icon" data-win="win-error"><span class="ic ic-bin"></span><span>hypixel bans (3)</span></button>
+  </nav>
+
+  <section class="window" id="win-about">
+    <header class="titlebar"><span class="title">about.txt - notepad</span>
+      <span class="winbtns"><button class="winbtn" data-min>_</button><button class="winbtn close" data-close>&#10005;</button></span>
+    </header>
+    <div class="menubar"><span>file</span><span>edit</span><span>format</span><span>view</span><span>help</span></div>
+    <div class="winbody">
+      <p>i play skyblock, and macro</p>
+      <p>i also edit</p>
+      <p>hypixel ban count: 3</p>
+      <p class="caret">example</p>
+    </div>
+  </section>
+
+  <section class="window" id="win-music">
+    <header class="titlebar"><span class="title">media player</span>
+      <span class="winbtns"><button class="winbtn" data-min>_</button><button class="winbtn close" data-close>&#10005;</button></span>
+    </header>
+    <div class="winbody" style="padding:0;">
+      <div class="lcd"><span class="lcd-text">now playing: nothing yet ... pick a track ... music i like, in no particular order ...</span></div>
+      <div class="track"><span class="no">01</span><span>yuragi <span class="dim">- i want you by my side</span></span><button class="play">play</button></div>
+      <div class="track"><span class="no">02</span><span>arti <span class="dim">- &#12363;&#12383;&#12431;&#12428;</span></span><button class="play">play</button></div>
+      <div class="track"><span class="no">03</span><span>panchiko <span class="dim">- gwen everest</span></span><button class="play">play</button></div>
+      <div class="track"><span class="no">04</span><span>what is your name? <span class="dim">- that unrequited feeling</span></span><button class="play">play</button></div>
+      <div class="track"><span class="no">05</span><span>whirr <span class="dim">- leave</span></span><button class="play">play</button></div>
+    </div>
+    <div class="statusbar"><span>5 items</span><span>spotify embed</span></div>
+  </section>
+
+  <section class="window" id="win-socials">
+    <header class="titlebar"><span class="title">socials</span>
+      <span class="winbtns"><button class="winbtn" data-min>_</button><button class="winbtn close" data-close>&#10005;</button></span>
+    </header>
+    <div class="winbody" style="padding:0;">
+      <div class="explorer">
+        <aside class="taskpane">
+          <h4>common tasks</h4>
+          <p>say hi. or don't, that's fine too</p>
+        </aside>
+        <div class="srows">
+          <a class="srow" href="https://github.com/vlensys"><span class="k">github</span><span>vlensys</span></a>
+          <a class="srow" href="https://discord.com/users/635404584302673933"><span class="k">discord</span><span>vlanise</span></a>
+          <a class="srow" href="mailto:me@vlensys.cc"><span class="k">email</span><span>me@vlensys.cc</span></a>
+          <span class="srow"><span class="k">mc user</span><span>simon</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="statusbar"><span>4 objects</span></div>
+  </section>
+
+  <section class="window" id="win-blog">
+    <header class="titlebar"><span class="title">blog - internet explorer</span>
+      <span class="winbtns"><button class="winbtn" data-min>_</button><button class="winbtn close" data-close>&#10005;</button></span>
+    </header>
+    <div class="addressbar"><span>address</span><span class="field">http://vlensys.cc/blog/</span><button class="go">go</button></div>
+    <div class="winbody" style="padding:0;">
+      <div class="post"><span class="date">may 9, 2026</span><a href="../blog/">yuri and whatnot</a></div>
+      <div class="post"><span class="date">may 8, 2026</span><a href="../blog/">m-m-macroing on skyblock</a></div>
+      <div class="post"><span class="date">april 22, 2026</span><a href="../blog/">shoegaze and tnnan</a></div>
+    </div>
+    <div class="statusbar"><span>done</span><span>internet</span></div>
+  </section>
+
+  <section class="window hidden" id="win-error">
+    <header class="titlebar"><span class="title">error</span>
+      <span class="winbtns"><button class="winbtn close" data-close>&#10005;</button></span>
+    </header>
+    <div class="winbody" style="background:var(--face);">
+      <span class="err-ic">&#10005;</span>
+      <p style="font-family:var(--ui);font-size:11px;line-height:1.6;">you have been banned from hypixel.<br>(3rd time. fishing ban wave.)</p>
+      <div class="btnrow"><button class="xpbtn" data-close-parent>ok</button></div>
+    </div>
+  </section>
+
+  <div class="startmenu hidden" id="startmenu">
+    <div class="sm-head"><span class="pfp"></span><span>vlensys</span></div>
+    <div class="sm-cols">
+      <div class="sm-left">
+        <a class="sm-item" href="../blog/"><span class="mini">e</span>blog</a>
+        <button class="sm-item" data-win="win-music"><span class="mini" style="--mi-a:#6fd877;--mi-b:#2a9a3e;">&#9835;</span>media player</button>
+        <button class="sm-item" data-win="win-about"><span class="mini" style="--mi-a:#fff;--mi-b:#cfd5dd;color:#5a7396;">a</span>about.txt</button>
+        <div class="sm-sep"></div>
+        <button class="sm-item" data-win="win-error"><span class="mini" style="--mi-a:#dfe8f0;--mi-b:#8fa2b3;">x</span>hypixel bans</button>
+      </div>
+      <div class="sm-right">
+        <a class="sm-item" href="https://github.com/vlensys"><span class="mini" style="--mi-a:#444;--mi-b:#111;">g</span>github</a>
+        <a class="sm-item" href="https://discord.com/users/635404584302673933"><span class="mini" style="--mi-a:#7d92f0;--mi-b:#4659c7;">d</span>discord</a>
+        <a class="sm-item" href="mailto:me@vlensys.cc"><span class="mini" style="--mi-a:#ffd76e;--mi-b:#e09a2a;">@</span>email</a>
+        <div class="sm-sep"></div>
+        <span class="sm-item"><span class="mini" style="--mi-a:#8ee06b;--mi-b:#3e8a1e;">s</span>mc user: simon</span>
+      </div>
+    </div>
+    <div class="sm-foot">
+      <button id="skin-menu"><span class="off-ic" style="background:radial-gradient(circle at 32% 26%, #fffbe8, #c9a52e 75%);"></span>switch skin</button>
+      <button><span class="off-ic"></span>log off</button>
+    </div>
+  </div>
+
+  <div class="balloon hidden" id="balloon">
+    <button class="bx" id="balloon-x">&#10005;</button>
+    <b>hypixel watchdog</b>
+    you have been banned for 30 days. (fishing ban wave, may 9)
+  </div>
+
+  <footer class="taskbar">
+    <button class="start" id="startbtn"><span class="flag"><i></i><i></i><i></i><i></i></span><span>start</span></button>
+    <div class="tabs">
+      <button class="tab" data-win="win-about">about.txt</button>
+      <button class="tab" data-win="win-music">media player</button>
+      <button class="tab" data-win="win-blog">blog</button>
+      <button class="tab" data-win="win-socials">socials</button>
+    </div>
+    <div class="tray">
+      <button class="tray-ic" id="skin" title="switch skin"></button>
+      <span class="clock" id="clock">--:--</span>
+    </div>
+  </footer>
+
+<script>
+const toggleSkin = () => document.body.classList.toggle("night");
+document.getElementById("skin").addEventListener("click", toggleSkin);
+document.getElementById("skin-menu").addEventListener("click", toggleSkin);
+
+const clock = document.getElementById("clock");
+const tick = () => {
+  const d = new Date();
+  let h = d.getHours();
+  const ampm = h >= 12 ? "pm" : "am";
+  h = h % 12 || 12;
+  clock.textContent = h + ":" + String(d.getMinutes()).padStart(2, "0") + " " + ampm;
+};
+tick();
+setInterval(tick, 5000);
+
+const startmenu = document.getElementById("startmenu");
+document.getElementById("startbtn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  startmenu.classList.toggle("hidden");
+});
+document.addEventListener("click", (e) => {
+  if (!startmenu.contains(e.target)) startmenu.classList.add("hidden");
+});
+
+let zTop = 3;
+const syncTabs = () => {
+  document.querySelectorAll(".tab").forEach((t) => {
+    const win = document.getElementById(t.dataset.win);
+    t.classList.toggle("off", win.classList.contains("hidden"));
+  });
+};
+document.querySelectorAll("[data-win]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const win = document.getElementById(btn.dataset.win);
+    if (btn.classList.contains("tab") && !win.classList.contains("hidden")) {
+      win.classList.add("hidden");
+    } else {
+      win.classList.remove("hidden");
+      win.style.zIndex = ++zTop;
+    }
+    startmenu.classList.add("hidden");
+    syncTabs();
+  });
+});
+document.querySelectorAll("[data-close], [data-min], [data-close-parent]").forEach((btn) => {
+  btn.addEventListener("click", () => { btn.closest(".window").classList.add("hidden"); syncTabs(); });
+});
+
+document.querySelectorAll(".titlebar").forEach((bar) => {
+  bar.addEventListener("pointerdown", (e) => {
+    if (e.target.closest(".winbtn")) return;
+    const win = bar.closest(".window");
+    win.style.zIndex = ++zTop;
+    const rect = win.getBoundingClientRect();
+    const dx = e.clientX - rect.left;
+    const dy = e.clientY - rect.top;
+    win.style.left = rect.left + "px";
+    win.style.top = rect.top + "px";
+    win.style.right = "auto";
+    win.style.bottom = "auto";
+    const move = (ev) => {
+      win.style.left = (ev.clientX - dx) + "px";
+      win.style.top = Math.max(0, ev.clientY - dy) + "px";
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  });
+});
+syncTabs();
+
+const balloon = document.getElementById("balloon");
+document.getElementById("balloon-x").addEventListener("click", () => balloon.classList.add("hidden"));
+setTimeout(() => balloon.classList.remove("hidden"), 2500);
+setTimeout(() => balloon.classList.add("hidden"), 14000);
+</script>
+</body>
+</html>

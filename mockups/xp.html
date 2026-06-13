@@ -533,126 +533,114 @@ body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 3
   border: 1px solid rgba(255,255,255,0.6);
 }
 
-/* ---- mobile: dark y2k anime shrine ---- */
-.shrine { display: none; }
-
-@font-face {
-  font-family: "Silkscreen";
-  src: url("assets/silkscreen.ttf") format("truetype");
-  font-display: swap;
-}
-@font-face {
-  font-family: "VT323";
-  src: url("assets/vt323.ttf") format("truetype");
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Nunito";
-  src: url("assets/nunito.ttf") format("truetype");
-  font-display: swap;
-}
+/* ---- mobile: reflow the xp windows into a column ---- */
+.m-bar { display: none; }
 
 @media (max-width: 760px) {
+  html, body { height: auto; }
   body, body.night {
-    overflow: auto;
-    background: #08031A;
-    /* tiled purple sky */
-    background-image:
-      radial-gradient(circle at 22% 30%, rgba(252, 234, 255, 0.55) 0 1px, transparent 1.6px),
-      radial-gradient(circle at 70% 65%, rgba(237, 100, 245, 0.35) 0 1px, transparent 1.5px),
-      radial-gradient(circle at 48% 12%, rgba(180, 150, 240, 0.3) 0 0.8px, transparent 1.3px),
-      radial-gradient(circle at 85% 20%, rgba(252, 234, 255, 0.25) 0 0.8px, transparent 1.3px);
-    background-size: 90px 90px, 130px 130px, 70px 70px, 110px 110px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-bottom: 22px;
   }
-  .icons, .window, .taskbar, .startmenu, .boot, .welcome { display: none !important; }
 
-  .shrine {
-    display: block;
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 10px 8px 20px;
-    font: 14px "Nunito", Verdana, sans-serif;
-    color: #fceaff;
-    text-transform: lowercase;
-  }
-  .shrine > * { margin-bottom: 10px; }
+  /* hide desktop-only furniture */
+  .icons, .taskbar, .startmenu { display: none !important; }
 
-  .sh-banner {
-    display: grid;
-    place-content: center;
-    gap: 2px;
-    text-align: center;
-    height: 130px;
-    background: #232425;
-    background-image:
-      radial-gradient(circle at 18% 38%, rgba(252, 234, 255, 0.7) 0 1px, transparent 1.8px),
-      radial-gradient(circle at 64% 22%, rgba(237, 100, 245, 0.6) 0 1.2px, transparent 2px),
-      radial-gradient(circle at 84% 70%, rgba(180, 150, 240, 0.5) 0 1px, transparent 1.7px),
-      radial-gradient(circle at 38% 76%, rgba(252, 234, 255, 0.4) 0 1px, transparent 1.6px),
-      linear-gradient(160deg, #1b0f3a 0%, #43256E 55%, #2a1452 100%);
-    background-size: 70px 70px, 95px 95px, 80px 80px, 105px 105px, 100% 100%;
-  }
-  .sh-title {
-    font-size: 30px;
-    font-weight: 800;
-    color: #ED64F5;
-    text-shadow: -3px 3px 1px #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-  }
-  .sh-nav {
+  /* slim xp top bar */
+  .m-bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-evenly;
-    gap: 4px 10px;
-    padding: 10px 6px;
-    background: #13092D;
+    align-items: center;
+    gap: 9px;
+    height: 38px;
+    padding: 0 12px;
+    background: var(--taskbar-grad);
+    box-shadow: 0 2px 8px rgba(10, 30, 70, 0.35);
   }
-  .sh-nav a {
-    color: #ED64F5;
-    font-weight: 800;
-    text-decoration: none;
-  }
-  .sh-nav a:hover { color: #a49cba; text-decoration: underline; }
-
-  .sh-main {
-    position: relative;
-    padding: 16px 18px 18px;
-    background: #43256E;
-  }
-  .sh-main h1 {
-    margin-bottom: 8px;
-    font-size: 26px;
-    font-weight: 800;
-    color: #ED64F5;
-  }
-  .sh-main p { line-height: 1.55; padding: 2px 0; padding-right: 70px; }
-  .sh-pfp {
-    position: absolute;
-    top: 18px; right: 16px;
-    width: 56px; height: 56px;
-    border: 1px solid #ED64F5;
+  .m-bar .m-pfp {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.8);
     background: url("../pfp.jpg") center/cover;
   }
+  .m-bar .m-name {
+    flex: 1;
+    font: bold italic 16px "Trebuchet MS", var(--ui);
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0, 20, 60, 0.5);
+  }
+  .m-bar .m-skin {
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 3px;
+    padding: 3px 11px 4px;
+    font: 11px var(--ui);
+    text-transform: lowercase;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.16);
+    cursor: pointer;
+  }
 
-  .sh-h {
-    margin: 0 0 6px;
-    font-size: 17px;
-    font-weight: 800;
-    color: #ED64F5;
-    padding: 10px 4px 0;
+  /* reflow the real windows into a single stacked column */
+  .window {
+    position: static !important;
+    width: auto !important;
+    min-width: 0;
+    margin: 12px 10px;
+    border-radius: 6px;
   }
-  .sh-box {
-    padding: 10px 12px;
-    border: 1px solid #ED64F5;
-    background: #08031A;
-    font-size: 13px;
-  }
-  .sh-box ul { list-style: none; }
-  .sh-box li { padding: 3px 0; line-height: 1.5; }
-  .sh-box li::before { content: "\2605 "; color: #ED64F5; font-size: 11px; }
-  .shrine a { color: #ED64F5; font-weight: 700; text-decoration: none; }
-  .shrine a:hover { text-decoration: underline; }
+  #win-settings { display: none !important; }
+  .winbtns { display: none; }
+  .titlebar { cursor: default; }
 }
+
+/* ---- ie mini-browser ---- */
+input.field {
+  font: 11px var(--ui);
+  text-transform: none;
+  outline: none;
+}
+.ie-frame {
+  display: block;
+  width: 100%;
+  height: 320px;
+  border: 0;
+  background: #fff;
+}
+
+/* ---- notepad dropdown menus ---- */
+.menubar span { cursor: pointer; }
+.np-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 158px;
+  padding: 2px;
+  background: var(--face);
+  border: 1px solid #7a7a7a;
+  box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.35);
+  font: 11px var(--ui);
+  color: var(--content-ink);
+  text-transform: lowercase;
+}
+body.night .np-menu { color: #d8dce8; border-color: #555; }
+.np-menu.hidden { display: none; }
+.np-menu button {
+  display: block;
+  width: 100%;
+  padding: 4px 16px 4px 22px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  text-transform: lowercase;
+  cursor: pointer;
+}
+.np-menu button:hover { background: var(--sel); color: #fff; }
+.np-menu .sep { height: 1px; margin: 3px 4px; background: #b3b3b3; }
+body.night .np-menu .sep { background: #555; }
 </style>
 </head>
 <body>
@@ -672,6 +660,11 @@ body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 3
   <div class="welcome gone" id="welcome">
     <div class="welcome-inner"><span class="pfp"></span><span>welcome</span></div>
   </div>
+
+  <header class="m-bar">
+    <span class="m-pfp"></span>
+    <span class="m-name">vlensys</span>
+  </header>
 
   <nav class="icons" aria-label="desktop">
     <button class="icon" data-win="win-about"><span class="ic ic-note"></span><span>about.md</span></button>
@@ -728,13 +721,13 @@ body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 3
     <header class="titlebar"><span class="title">blog - internet explorer</span>
       <span class="winbtns"><button class="winbtn" data-min>_</button><button class="winbtn close" data-close>&#10005;</button></span>
     </header>
-    <div class="addressbar"><span>address</span><span class="field">http://vlensys.cc/blog/</span><button class="go">go</button></div>
-    <div class="winbody" style="padding:0;">
+    <div class="addressbar"><span>address</span><input class="field" id="ie-url" value="http://vlensys.cc/blog/" spellcheck="false" /><button class="go" id="ie-go">go</button></div>
+    <div class="winbody" id="ie-body" style="padding:0;">
       <div class="post"><span class="date">may 9, 2026</span><a href="../blog/">yuri and whatnot</a></div>
       <div class="post"><span class="date">may 8, 2026</span><a href="../blog/">m-m-macroing on skyblock</a></div>
       <div class="post"><span class="date">april 22, 2026</span><a href="../blog/">shoegaze and tnnan</a></div>
     </div>
-    <div class="statusbar"><span>done</span><span>internet</span></div>
+    <div class="statusbar"><span id="ie-status">done</span><span>internet</span></div>
   </section>
 
   <section class="window hidden" id="win-settings">
@@ -802,58 +795,6 @@ body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 3
       <span class="clock" id="clock">--:--</span>
     </div>
   </footer>
-
-  <!-- mobile-only: classic neocities layout -->
-  <main class="shrine">
-    <header class="sh-banner">
-      <span class="sh-title">vlensys</span>
-    </header>
-
-    <nav class="sh-nav">
-      <a href="#">home</a>
-      <a href="../blog/">blog</a>
-      <a href="https://github.com/vlensys">github</a>
-      <a href="https://discord.com/users/635404584302673933">discord</a>
-      <a href="mailto:me@vlensys.cc">email</a>
-    </nav>
-
-    <section class="sh-main">
-      <h1>welcome</h1>
-      <p>hi, i'm vlensys. i play skyblock, and macro. i also edit.</p>
-      <p>example</p>
-      <div class="sh-pfp"></div>
-    </section>
-
-    <h2 class="sh-h">updates</h2>
-    <div class="sh-box">
-      <ul>
-        <li><b>may 9</b> - new post: <a href="../blog/">yuri and whatnot</a></li>
-        <li><b>may 8</b> - new post: <a href="../blog/">m-m-macroing on skyblock</a></li>
-        <li><b>apr 22</b> - new post: <a href="../blog/">shoegaze and tnnan</a></li>
-      </ul>
-    </div>
-
-    <h2 class="sh-h">music i like</h2>
-    <div class="sh-box">
-      <ul>
-        <li>yuragi - <a href="#">i want you by my side</a></li>
-        <li>arti - <a href="#">&#12363;&#12383;&#12431;&#12428;</a></li>
-        <li>panchiko - <a href="#">gwen everest</a></li>
-        <li>what is your name? - <a href="#">that unrequited feeling</a></li>
-        <li>whirr - <a href="#">leave</a></li>
-      </ul>
-    </div>
-
-    <h2 class="sh-h">socials</h2>
-    <div class="sh-box">
-      <ul>
-        <li>github: <a href="https://github.com/vlensys">vlensys</a></li>
-        <li>discord: <a href="https://discord.com/users/635404584302673933">vlanise</a></li>
-        <li>email: <a href="mailto:me@vlensys.cc">me@vlensys.cc</a></li>
-        <li>mc user: simon</li>
-      </ul>
-    </div>
-  </main>
 
 <script>
 // boot sequence: boot -> welcome -> desktop (+ ding)
@@ -964,6 +905,130 @@ document.querySelectorAll(".titlebar").forEach((bar) => {
   });
 });
 syncTabs();
+
+// ---- ie mini-browser: real address bar ----
+const ieUrl = document.getElementById("ie-url");
+const ieBody = document.getElementById("ie-body");
+const ieStatus = document.getElementById("ie-status");
+const ieGo = () => {
+  let v = ieUrl.value.trim();
+  if (!v) return;
+  let url;
+  if (/\s/.test(v) || !v.includes(".")) {
+    // a search term -> google (igu=1 makes it embeddable)
+    url = "https://www.google.com/search?igu=1&q=" + encodeURIComponent(v);
+  } else {
+    if (!/^https?:\/\//i.test(v)) v = "https://" + v;
+    try {
+      const u = new URL(v);
+      // bare google homepage -> embeddable variant
+      if (/(^|\.)google\.[a-z.]+$/i.test(u.hostname) && (u.pathname === "/" || u.pathname === "")) {
+        v = "https://www.google.com/webhp?igu=1";
+      }
+    } catch (e) {}
+    url = v;
+  }
+  ieStatus.textContent = "loading...";
+  ieBody.innerHTML = '<iframe class="ie-frame" src="' + url.replace(/"/g, "&quot;") + '"></iframe>';
+  const frame = ieBody.querySelector("iframe");
+  frame.addEventListener("load", () => { ieStatus.textContent = "done"; });
+};
+document.getElementById("ie-go").addEventListener("click", ieGo);
+ieUrl.addEventListener("keydown", (e) => { if (e.key === "Enter") ieGo(); });
+ieUrl.addEventListener("focus", () => ieUrl.select());
+
+// ---- notepad dropdown menus ----
+const npMenu = document.createElement("div");
+npMenu.className = "np-menu hidden";
+document.body.appendChild(npMenu);
+
+const npDialog = (title, msg) => {
+  const d = document.createElement("section");
+  d.className = "window np-dialog";
+  d.style.cssText = "left:50%;top:38%;width:280px;z-index:1000;transform:translateX(-50%);";
+  d.innerHTML =
+    '<header class="titlebar"><span class="title">' + title + '</span>' +
+    '<span class="winbtns"><button class="winbtn close">✕</button></span></header>' +
+    '<div class="winbody" style="padding:16px 16px 14px;font-family:var(--ui);font-size:11px;text-transform:lowercase;">' +
+    msg +
+    '<div style="text-align:center;margin-top:16px;"><button class="xpbtn np-ok">ok</button></div></div>';
+  document.body.appendChild(d);
+  const close = () => d.remove();
+  d.querySelector(".close").onclick = close;
+  d.querySelector(".np-ok").onclick = close;
+};
+
+const selectBody = (win) => {
+  const body = win.querySelector(".winbody");
+  const range = document.createRange();
+  range.selectNodeContents(body);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+};
+const openSettings = () => {
+  const s = document.getElementById("win-settings");
+  s.classList.remove("hidden");
+  s.style.zIndex = ++zTop;
+};
+
+const NP = {
+  file: [
+    ["new", null],
+    ["open…", null],
+    ["save", () => npDialog("notepad", "saved! (just kidding, it's a website)")],
+    ["sep"],
+    ["exit", (win) => { win.classList.add("hidden"); syncTabs(); }],
+  ],
+  edit: [
+    ["undo", null], ["sep"],
+    ["cut", null], ["copy", null], ["paste", null], ["sep"],
+    ["select all", (win) => selectBody(win)],
+  ],
+  format: [
+    ["word wrap", null],
+    ["font…", () => openSettings()],
+  ],
+  view: [["status bar", null]],
+  help: [["about notepad", () => npDialog("about notepad", "notepad, more or less. part of vlensys xp.")]],
+};
+
+let npOpenSpan = null;
+const closeNp = () => {
+  npMenu.classList.add("hidden");
+  if (npOpenSpan) npOpenSpan.classList.remove("open");
+  npOpenSpan = null;
+};
+document.querySelectorAll(".menubar span").forEach((span) => {
+  span.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const items = NP[span.textContent.trim()];
+    if (!items) return;
+    if (npOpenSpan === span) { closeNp(); return; }
+    closeNp();
+    npOpenSpan = span;
+    span.classList.add("open");
+    const win = span.closest(".window");
+    npMenu.innerHTML = "";
+    items.forEach(([label, fn]) => {
+      if (label === "sep") {
+        const s = document.createElement("div");
+        s.className = "sep";
+        npMenu.appendChild(s);
+        return;
+      }
+      const b = document.createElement("button");
+      b.textContent = label;
+      b.addEventListener("click", () => { closeNp(); if (fn) fn(win); });
+      npMenu.appendChild(b);
+    });
+    const r = span.getBoundingClientRect();
+    npMenu.style.left = r.left + "px";
+    npMenu.style.top = r.bottom + "px";
+    npMenu.classList.remove("hidden");
+  });
+});
+document.addEventListener("click", closeNp);
 </script>
 </body>
 </html>

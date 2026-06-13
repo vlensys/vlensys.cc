@@ -664,7 +664,6 @@ body.night .np-menu .sep { background: #555; }
   <header class="m-bar">
     <span class="m-pfp"></span>
     <span class="m-name">vlensys</span>
-    <button class="m-skin" id="m-skin">skin</button>
   </header>
 
   <nav class="icons" aria-label="desktop">
@@ -834,13 +833,11 @@ document.getElementById("custom-color").addEventListener("input", (e) => {
   document.body.style.setProperty("--custom", e.target.value);
 });
 
-// tray skin toggle (+ mobile top bar)
-const toggleNight = () => {
+// tray skin toggle
+document.getElementById("skin").addEventListener("click", () => {
   document.body.classList.remove("theme-custom");
   document.body.classList.toggle("night");
-};
-document.getElementById("skin").addEventListener("click", toggleNight);
-document.getElementById("m-skin").addEventListener("click", toggleNight);
+});
 
 // clock: estonia time (europe/tallinn)
 const clock = document.getElementById("clock");

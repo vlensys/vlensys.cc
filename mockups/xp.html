@@ -167,6 +167,7 @@ body.night {
 .ic-display { margin-top: 2px; height: 26px; border: 3px solid #cfd5dd; border-radius: 3px; background: linear-gradient(160deg, #6db1f7, #1c50b8); }
 .ic-display::after { content: ""; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 16px; height: 5px; background: #aebdcb; border-radius: 1px; box-shadow: 0 3px 0 -1px #8fa2b3; }
 
+/* windows (luna) */
 .window {
   position: fixed;
   min-width: 300px;
@@ -387,6 +388,7 @@ fieldset label { display: flex; align-items: center; gap: 6px; padding: 3px 0; c
 body.night .xpbtn { color: #d8dce8; border-color: #565a6b; background: linear-gradient(180deg, #4a4e5e, #33363f 50%, #24262e); }
 .wip { color: var(--content-dim); font-style: italic; }
 
+/* taskbar */
 .taskbar {
   position: fixed;
   left: 0; right: 0; bottom: 0;
@@ -653,10 +655,10 @@ body.night .np-menu .sep { background: #555; }
       </div>
       <div class="boot-bar"><div class="boot-chunks"><i></i><i></i><i></i></div></div>
     </div>
-    <div class="boot-foot"><span>for the best experience, turn sound on</span><span>click to skip</span></div>
+    <div class="boot-foot"><span>sahur</span><span>skip</span></div>
   </div>
 
-  <div class="welcome gone" id="welcome">
+  <div class="welcome gone" id="Hi">
     <div class="welcome-inner"><span class="pfp"></span><span>welcome</span></div>
   </div>
 
@@ -683,7 +685,6 @@ body.night .np-menu .sep { background: #555; }
       <p class="md-li">i play skyblock, and macro</p>
       <p class="md-li">i also edit</p>
       <p class="md-li">hypixel ban count: 3</p>
-      <p class="caret">example</p>
     </div>
   </section>
 
@@ -692,13 +693,11 @@ body.night .np-menu .sep { background: #555; }
       <span class="winbtns"><button class="winbtn" data-min>_</button><button class="winbtn close" data-close>&#10005;</button></span>
     </header>
     <div class="winbody" style="padding:0;">
-      <div class="lcd"><span class="lcd-text">now playing: nothing yet ... pick a track ... music i like, in no particular order ...</span></div>
-      <div class="track"><span class="no">01</span><span>yuragi <span class="dim">- i want you by my side</span></span><button class="play" data-track="6RVfG5WnuumV1I5pCIhB1N" data-label="yuragi - i want you by my side">play</button></div>
-      <div class="track"><span class="no">02</span><span>arti <span class="dim">- &#12363;&#12383;&#12431;&#12428;</span></span><button class="play" data-track="1XWuxO8VSSdXNRbBfs5wn5" data-label="arti - かたわれ">play</button></div>
-      <div class="track"><span class="no">03</span><span>panchiko <span class="dim">- gwen everest</span></span><button class="play" data-track="0jgS3Mw4Q32NSb6r3iDh4J" data-label="panchiko - gwen everest">play</button></div>
-      <div class="track"><span class="no">04</span><span>what is your name? <span class="dim">- that unrequited feeling</span></span><button class="play" data-track="0nmvdr6yk8lJy1DIMBmLot" data-label="what is your name? - that unrequited feeling">play</button></div>
-      <div class="track"><span class="no">05</span><span>whirr <span class="dim">- leave</span></span><button class="play" data-track="6yjtcpFf9dLgflkS52PYNa" data-label="whirr - leave">play</button></div>
-      <div id="spotify-player"></div>
+      <div class="track"><span class="no">01</span><span>yuragi <span class="dim">- i want you by my side</span></span><button class="play">play</button></div>
+      <div class="track"><span class="no">02</span><span>arti <span class="dim">- &#12363;&#12383;&#12431;&#12428;</span></span><button class="play">play</button></div>
+      <div class="track"><span class="no">03</span><span>panchiko <span class="dim">- gwen everest</span></span><button class="play">play</button></div>
+      <div class="track"><span class="no">04</span><span>what is your name? <span class="dim">- that unrequited feeling</span></span><button class="play">play</button></div>
+      <div class="track"><span class="no">05</span><span>whirr <span class="dim">- leave</span></span><button class="play">play</button></div>
     </div>
     <div class="statusbar"><span>5 items</span></div>
   </section>
@@ -1033,18 +1032,7 @@ document.getElementById("ie-go").addEventListener("click", ieGo);
 ieUrl.addEventListener("keydown", (e) => { if (e.key === "Enter") ieGo(); });
 ieUrl.addEventListener("focus", () => ieUrl.select());
 
-document.querySelectorAll(".play").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const id = btn.dataset.track;
-    const label = btn.dataset.label;
-    const player = document.getElementById("spotify-player");
-    player.innerHTML = '<iframe src="https://open.spotify.com/embed/track/' + id + '?utm_source=generator&theme=0" width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
-    const lcdText = document.querySelector(".lcd-text");
-    lcdText.style.animation = "none";
-    lcdText.textContent = "now playing: " + label + " ...";
-  });
-});
-
+// notepad dropdown menus 
 const npMenu = document.createElement("div");
 npMenu.className = "np-menu hidden";
 document.body.appendChild(npMenu);

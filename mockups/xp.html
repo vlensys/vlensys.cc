@@ -68,7 +68,7 @@ body.night {
     url("assets/bliss.jpg") center/cover no-repeat fixed;
 }
 
-/* ---- boot screen ---- */
+/* boot */
 .boot {
   position: fixed;
   inset: 0;
@@ -122,7 +122,7 @@ body.night {
 .welcome-inner .pfp { width: 64px; height: 64px; border: 2px solid #fff; border-radius: 8px; background: url("../pfp.jpg") center/cover; }
 .welcome-inner span { font: italic bold 30px "Trebuchet MS", var(--ui); text-shadow: 2px 2px 4px rgba(0,0,30,0.5); }
 
-/* ---- desktop icons ---- */
+/* desktop icons */
 .icons {
   position: fixed;
   top: 16px;
@@ -173,7 +173,7 @@ body.night {
 .ic-display { margin-top: 2px; height: 26px; border: 3px solid #cfd5dd; border-radius: 3px; background: linear-gradient(160deg, #6db1f7, #1c50b8); }
 .ic-display::after { content: ""; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 16px; height: 5px; background: #aebdcb; border-radius: 1px; box-shadow: 0 3px 0 -1px #8fa2b3; }
 
-/* ---- windows (luna) ---- */
+/* windows (luna) */
 .window {
   position: fixed;
   min-width: 300px;
@@ -315,7 +315,7 @@ body.night .play { color: #d8dce8; border-color: #565a6b; background: linear-gra
 #win-socials a { color: #1558c4; }
 body.night #win-socials a { color: #7fb0f5; }
 
-/* ie6 blog */
+/* blog */
 #win-blog { bottom: 9%; right: 19%; width: 400px; }
 .addressbar {
   display: flex;
@@ -379,7 +379,7 @@ fieldset label { display: flex; align-items: center; gap: 6px; padding: 3px 0; c
 body.night .xpbtn { color: #d8dce8; border-color: #565a6b; background: linear-gradient(180deg, #4a4e5e, #33363f 50%, #24262e); }
 .wip { color: var(--content-dim); font-style: italic; }
 
-/* ---- taskbar ---- */
+/* taskbar */
 .taskbar {
   position: fixed;
   left: 0; right: 0; bottom: 0;
@@ -450,7 +450,7 @@ body.night .start { filter: saturate(0.45) brightness(0.8); }
 body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 30%, #aebdd8 70%, #6e7f9e 100%); }
 .clock { font: 11px var(--ui); color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,0.4); }
 
-/* ---- start menu ---- */
+/* start menu */
 .startmenu {
   position: fixed;
   left: 0;
@@ -533,7 +533,7 @@ body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 3
   border: 1px solid rgba(255,255,255,0.6);
 }
 
-/* ---- mobile: reflow the xp windows into a column ---- */
+/* mobile: reflow the xp windows into a column */
 .m-bar { display: none; }
 
 @media (max-width: 760px) {
@@ -583,7 +583,7 @@ body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 3
     cursor: pointer;
   }
 
-  /* reflow the real windows into a single stacked column */
+  /* ome staxk */
   .window {
     position: static !important;
     width: auto !important;
@@ -596,7 +596,7 @@ body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 3
   .titlebar { cursor: default; }
 }
 
-/* ---- ie mini-browser ---- */
+/* ie mini browser */
 input.field {
   font: 11px var(--ui);
   text-transform: none;
@@ -610,7 +610,7 @@ input.field {
   background: #fff;
 }
 
-/* ---- notepad dropdown menus ---- */
+/* notepad dropdown menus */
 .menubar span { cursor: pointer; }
 .np-menu {
   position: fixed;
@@ -654,10 +654,10 @@ body.night .np-menu .sep { background: #555; }
       </div>
       <div class="boot-bar"><div class="boot-chunks"><i></i><i></i><i></i></div></div>
     </div>
-    <div class="boot-foot"><span>for the best experience, turn sound on</span><span>click to skip</span></div>
+    <div class="boot-foot"><span>sahur</span><span>skip</span></div>
   </div>
 
-  <div class="welcome gone" id="welcome">
+  <div class="welcome gone" id="Hi">
     <div class="welcome-inner"><span class="pfp"></span><span>welcome</span></div>
   </div>
 
@@ -684,7 +684,6 @@ body.night .np-menu .sep { background: #555; }
       <p class="md-li">i play skyblock, and macro</p>
       <p class="md-li">i also edit</p>
       <p class="md-li">hypixel ban count: 3</p>
-      <p class="caret">example</p>
     </div>
   </section>
 
@@ -693,7 +692,6 @@ body.night .np-menu .sep { background: #555; }
       <span class="winbtns"><button class="winbtn" data-min>_</button><button class="winbtn close" data-close>&#10005;</button></span>
     </header>
     <div class="winbody" style="padding:0;">
-      <div class="lcd"><span class="lcd-text">now playing: nothing yet ... pick a track ... music i like, in no particular order ...</span></div>
       <div class="track"><span class="no">01</span><span>yuragi <span class="dim">- i want you by my side</span></span><button class="play">play</button></div>
       <div class="track"><span class="no">02</span><span>arti <span class="dim">- &#12363;&#12383;&#12431;&#12428;</span></span><button class="play">play</button></div>
       <div class="track"><span class="no">03</span><span>panchiko <span class="dim">- gwen everest</span></span><button class="play">play</button></div>
@@ -797,7 +795,6 @@ body.night .np-menu .sep { background: #555; }
   </footer>
 
 <script>
-// boot sequence: boot -> welcome -> desktop (+ ding)
 const boot = document.getElementById("boot");
 const welcome = document.getElementById("welcome");
 const ding = document.getElementById("ding");
@@ -813,14 +810,14 @@ const finishBoot = () => {
 boot.addEventListener("click", finishBoot);
 setTimeout(finishBoot, 4200);
 
-// settings: font
+// fonts
 document.querySelectorAll('input[name="font"]').forEach((r) => {
   r.addEventListener("change", () => {
     document.documentElement.style.setProperty("--content-font", r.value);
   });
 });
 
-// settings: theme presets + custom
+// themes
 document.querySelectorAll("[data-theme]").forEach((btn) => {
   btn.addEventListener("click", () => {
     document.body.classList.remove("theme-custom");
@@ -839,7 +836,7 @@ document.getElementById("skin").addEventListener("click", () => {
   document.body.classList.toggle("night");
 });
 
-// clock: estonia time (europe/tallinn)
+// clock
 const clock = document.getElementById("clock");
 const fmt = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Tallinn", hour: "numeric", minute: "2-digit", hour12: true });
 const tick = () => { clock.textContent = fmt.format(new Date()).toLowerCase(); };
@@ -856,7 +853,7 @@ document.addEventListener("click", (e) => {
   if (!startmenu.contains(e.target)) startmenu.classList.add("hidden");
 });
 
-// windows: open/close/drag
+// windows logic
 let zTop = 3;
 const syncTabs = () => {
   document.querySelectorAll(".tab").forEach((t) => {
@@ -906,7 +903,7 @@ document.querySelectorAll(".titlebar").forEach((bar) => {
 });
 syncTabs();
 
-// ---- ie mini-browser: real address bar ----
+// browser
 const ieUrl = document.getElementById("ie-url");
 const ieBody = document.getElementById("ie-body");
 const ieStatus = document.getElementById("ie-status");
@@ -915,13 +912,11 @@ const ieGo = () => {
   if (!v) return;
   let url;
   if (/\s/.test(v) || !v.includes(".")) {
-    // a search term -> google (igu=1 makes it embeddable)
     url = "https://www.google.com/search?igu=1&q=" + encodeURIComponent(v);
   } else {
     if (!/^https?:\/\//i.test(v)) v = "https://" + v;
     try {
       const u = new URL(v);
-      // bare google homepage -> embeddable variant
       if (/(^|\.)google\.[a-z.]+$/i.test(u.hostname) && (u.pathname === "/" || u.pathname === "")) {
         v = "https://www.google.com/webhp?igu=1";
       }
@@ -937,7 +932,7 @@ document.getElementById("ie-go").addEventListener("click", ieGo);
 ieUrl.addEventListener("keydown", (e) => { if (e.key === "Enter") ieGo(); });
 ieUrl.addEventListener("focus", () => ieUrl.select());
 
-// ---- notepad dropdown menus ----
+// notepad dropdown menus 
 const npMenu = document.createElement("div");
 npMenu.className = "np-menu hidden";
 document.body.appendChild(npMenu);

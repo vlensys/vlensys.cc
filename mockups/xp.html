@@ -595,6 +595,20 @@ body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 3
   .winbtns { display: none; }
   .titlebar { cursor: default; }
 }
+
+/* ---- ie mini-browser ---- */
+input.field {
+  font: 11px var(--ui);
+  text-transform: none;
+  outline: none;
+}
+.ie-frame {
+  display: block;
+  width: 100%;
+  height: 320px;
+  border: 0;
+  background: #fff;
+}
 </style>
 </head>
 <body>
@@ -676,13 +690,13 @@ body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 3
     <header class="titlebar"><span class="title">blog - internet explorer</span>
       <span class="winbtns"><button class="winbtn" data-min>_</button><button class="winbtn close" data-close>&#10005;</button></span>
     </header>
-    <div class="addressbar"><span>address</span><span class="field">http://vlensys.cc/blog/</span><button class="go">go</button></div>
-    <div class="winbody" style="padding:0;">
+    <div class="addressbar"><span>address</span><input class="field" id="ie-url" value="http://vlensys.cc/blog/" spellcheck="false" /><button class="go" id="ie-go">go</button></div>
+    <div class="winbody" id="ie-body" style="padding:0;">
       <div class="post"><span class="date">may 9, 2026</span><a href="../blog/">yuri and whatnot</a></div>
       <div class="post"><span class="date">may 8, 2026</span><a href="../blog/">m-m-macroing on skyblock</a></div>
       <div class="post"><span class="date">april 22, 2026</span><a href="../blog/">shoegaze and tnnan</a></div>
     </div>
-    <div class="statusbar"><span>done</span><span>internet</span></div>
+    <div class="statusbar"><span id="ie-status">done</span><span>internet</span></div>
   </section>
 
   <section class="window hidden" id="win-settings">
@@ -862,6 +876,37 @@ document.querySelectorAll(".titlebar").forEach((bar) => {
   });
 });
 syncTabs();
+
+// ---- ie mini-browser: real address bar ----
+const ieUrl = document.getElementById("ie-url");
+const ieBody = document.getElementById("ie-body");
+const ieStatus = document.getElementById("ie-status");
+const ieGo = () => {
+  let v = ieUrl.value.trim();
+  if (!v) return;
+  let url;
+  if (/\s/.test(v) || !v.includes(".")) {
+    // a search term -> google (igu=1 makes it embeddable)
+    url = "https://www.google.com/search?igu=1&q=" + encodeURIComponent(v);
+  } else {
+    if (!/^https?:\/\//i.test(v)) v = "https://" + v;
+    try {
+      const u = new URL(v);
+      // bare google homepage -> embeddable variant
+      if (/(^|\.)google\.[a-z.]+$/i.test(u.hostname) && (u.pathname === "/" || u.pathname === "")) {
+        v = "https://www.google.com/webhp?igu=1";
+      }
+    } catch (e) {}
+    url = v;
+  }
+  ieStatus.textContent = "loading...";
+  ieBody.innerHTML = '<iframe class="ie-frame" src="' + url.replace(/"/g, "&quot;") + '"></iframe>';
+  const frame = ieBody.querySelector("iframe");
+  frame.addEventListener("load", () => { ieStatus.textContent = "done"; });
+};
+document.getElementById("ie-go").addEventListener("click", ieGo);
+ieUrl.addEventListener("keydown", (e) => { if (e.key === "Enter") ieGo(); });
+ieUrl.addEventListener("focus", () => ieUrl.select());
 </script>
 </body>
 </html>

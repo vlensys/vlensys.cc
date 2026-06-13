@@ -580,14 +580,21 @@ body.night .tray-ic { background: radial-gradient(circle at 60% 35%, #f4f7ff 0 3
   }
 
   .window {
-    position: absolute !important;
-    width: calc(100vw - 20px) !important;
+    position: relative;
     min-width: 0;
-    margin: 0;
+    margin: 12px 10px;
     border-radius: 6px;
+  }
+  #win-about, #win-music, #win-socials, #win-blog {
+    left: auto;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    width: calc(100vw - 20px);
   }
   #win-settings { display: none !important; }
   .titlebar { cursor: grab; }
+  .ie-frame { height: 58vh; }
 }
 
 input.field {
@@ -693,11 +700,13 @@ body.night .np-menu .sep { background: #555; }
       <span class="winbtns"><button class="winbtn" data-min>_</button><button class="winbtn close" data-close>&#10005;</button></span>
     </header>
     <div class="winbody" style="padding:0;">
-      <div class="track"><span class="no">01</span><span>yuragi <span class="dim">- i want you by my side</span></span><button class="play">play</button></div>
-      <div class="track"><span class="no">02</span><span>arti <span class="dim">- &#12363;&#12383;&#12431;&#12428;</span></span><button class="play">play</button></div>
-      <div class="track"><span class="no">03</span><span>panchiko <span class="dim">- gwen everest</span></span><button class="play">play</button></div>
-      <div class="track"><span class="no">04</span><span>what is your name? <span class="dim">- that unrequited feeling</span></span><button class="play">play</button></div>
-      <div class="track"><span class="no">05</span><span>whirr <span class="dim">- leave</span></span><button class="play">play</button></div>
+      <div class="lcd"><span class="lcd-text">now playing: nothing yet ... pick a track ... music i like, in no particular order ...</span></div>
+      <div class="track"><span class="no">01</span><span>yuragi <span class="dim">- i want you by my side</span></span><button class="play" data-track="6RVfG5WnuumV1I5pCIhB1N" data-label="yuragi - i want you by my side">play</button></div>
+      <div class="track"><span class="no">02</span><span>arti <span class="dim">- &#12363;&#12383;&#12431;&#12428;</span></span><button class="play" data-track="1XWuxO8VSSdXNRbBfs5wn5" data-label="arti - かたわれ">play</button></div>
+      <div class="track"><span class="no">03</span><span>panchiko <span class="dim">- gwen everest</span></span><button class="play" data-track="0jgS3Mw4Q32NSb6r3iDh4J" data-label="panchiko - gwen everest">play</button></div>
+      <div class="track"><span class="no">04</span><span>what is your name? <span class="dim">- that unrequited feeling</span></span><button class="play" data-track="0nmvdr6yk8lJy1DIMBmLot" data-label="what is your name? - that unrequited feeling">play</button></div>
+      <div class="track"><span class="no">05</span><span>whirr <span class="dim">- leave</span></span><button class="play" data-track="6yjtcpFf9dLgflkS52PYNa" data-label="whirr - leave">play</button></div>
+      <div id="spotify-player"></div>
     </div>
     <div class="statusbar"><span>5 items</span></div>
   </section>
@@ -808,7 +817,7 @@ const finishBoot = () => {
   ding.play().catch(() => {});
   setTimeout(() => {
     welcome.classList.add("gone");
-    arrangeMobile();
+    if (isMobile()) clearMobileInline();
   }, 1600);
 };
 boot.addEventListener("click", finishBoot);
@@ -862,34 +871,14 @@ const syncTabs = () => {
   });
 };
 
-const positionNextMobile = (win) => {
-  let maxBottom = 52;
-  document.querySelectorAll(".window:not(.hidden)").forEach((w) => {
-    if (w === win) return;
-    const t = parseInt(w.style.top) || w.offsetTop;
-    const b = t + w.getBoundingClientRect().height + 12;
-    if (b > maxBottom) maxBottom = b;
-  });
-  win.style.left = "10px";
-  win.style.right = "auto";
-  win.style.bottom = "auto";
-  win.style.width = (window.innerWidth - 20) + "px";
-  win.style.top = maxBottom + "px";
-  setTimeout(() => win.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+const clearInline = (win) => {
+  win.style.left = win.style.top = win.style.right = win.style.bottom = "";
+  win.style.width = win.style.height = win.style.transform = win.style.zIndex = "";
+  const body = win.querySelector(".winbody");
+  if (body) body.style.overflowY = "";
 };
-
-const arrangeMobile = () => {
-  if (!isMobile()) return;
-  const W = window.innerWidth - 20;
-  let top = 52;
-  document.querySelectorAll(".window:not(.hidden):not(#win-settings)").forEach((win) => {
-    win.style.left = "10px";
-    win.style.right = "auto";
-    win.style.bottom = "auto";
-    win.style.width = W + "px";
-    win.style.top = top + "px";
-    top += win.getBoundingClientRect().height + 12;
-  });
+const clearMobileInline = () => {
+  document.querySelectorAll(".window").forEach(clearInline);
 };
 
 document.querySelectorAll("[data-win]").forEach((btn) => {
@@ -899,12 +888,23 @@ document.querySelectorAll("[data-win]").forEach((btn) => {
       win.classList.add("hidden");
     } else {
       win.classList.remove("hidden");
-      win.style.zIndex = ++zTop;
-      if (isMobile()) positionNextMobile(win);
+      if (isMobile()) {
+        clearInline(win);
+        setTimeout(() => win.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+      } else {
+        win.style.zIndex = ++zTop;
+      }
     }
     startmenu.classList.add("hidden");
     syncTabs();
   });
+});
+
+let wasMobile = isMobile();
+window.addEventListener("resize", () => {
+  const m = isMobile();
+  if (m && !wasMobile) clearMobileInline();
+  wasMobile = m;
 });
 
 document.querySelectorAll("[data-close], [data-min]").forEach((btn) => {
@@ -915,17 +915,14 @@ document.querySelectorAll(".titlebar").forEach((bar) => {
   bar.addEventListener("pointerdown", (e) => {
     if (e.target.closest(".winbtn")) return;
     const win = bar.closest(".window");
-    win.style.zIndex = ++zTop;
     if (isMobile()) {
       e.preventDefault();
-      const startX = e.pageX, startY = e.pageY;
-      const origLeft = parseInt(win.style.left) || win.offsetLeft;
-      const origTop = parseInt(win.style.top) || win.offsetTop;
+      const startX = e.clientX, startY = e.clientY;
+      const m = /translate\(\s*([-\d.]+)px[, ]+([-\d.]+)px/.exec(win.style.transform || "");
+      const ox = m ? parseFloat(m[1]) : 0;
+      const oy = m ? parseFloat(m[2]) : 0;
       const move = (ev) => {
-        win.style.left = Math.max(0, origLeft + ev.pageX - startX) + "px";
-        win.style.top = Math.max(44, origTop + ev.pageY - startY) + "px";
-        win.style.right = "auto";
-        win.style.bottom = "auto";
+        win.style.transform = "translate(" + (ox + ev.clientX - startX) + "px, " + (oy + ev.clientY - startY) + "px)";
       };
       const up = () => {
         win.removeEventListener("pointermove", move);
@@ -935,6 +932,7 @@ document.querySelectorAll(".titlebar").forEach((bar) => {
       win.addEventListener("pointermove", move);
       win.addEventListener("pointerup", up);
     } else {
+      win.style.zIndex = ++zTop;
       const rect = win.getBoundingClientRect();
       const dx = e.clientX - rect.left;
       const dy = e.clientY - rect.top;
@@ -987,6 +985,21 @@ document.querySelectorAll(".window").forEach((win) => {
 });
 
 syncTabs();
+
+document.querySelectorAll(".play").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const id = btn.dataset.track;
+    const label = btn.dataset.label;
+    if (!id) return;
+    const player = document.getElementById("spotify-player");
+    player.innerHTML = '<iframe src="https://open.spotify.com/embed/track/' + id + '?utm_source=generator&theme=0" width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+    const lcdText = document.querySelector("#win-music .lcd-text");
+    if (lcdText) {
+      lcdText.style.animation = "none";
+      lcdText.textContent = "now playing: " + label + " ...";
+    }
+  });
+});
 
 const ieUrl = document.getElementById("ie-url");
 const ieBody = document.getElementById("ie-body");

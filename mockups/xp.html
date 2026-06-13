@@ -609,6 +609,38 @@ input.field {
   border: 0;
   background: #fff;
 }
+
+/* ---- notepad dropdown menus ---- */
+.menubar span { cursor: pointer; }
+.np-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 158px;
+  padding: 2px;
+  background: var(--face);
+  border: 1px solid #7a7a7a;
+  box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.35);
+  font: 11px var(--ui);
+  color: var(--content-ink);
+  text-transform: lowercase;
+}
+body.night .np-menu { color: #d8dce8; border-color: #555; }
+.np-menu.hidden { display: none; }
+.np-menu button {
+  display: block;
+  width: 100%;
+  padding: 4px 16px 4px 22px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  text-transform: lowercase;
+  cursor: pointer;
+}
+.np-menu button:hover { background: var(--sel); color: #fff; }
+.np-menu .sep { height: 1px; margin: 3px 4px; background: #b3b3b3; }
+body.night .np-menu .sep { background: #555; }
 </style>
 </head>
 <body>
@@ -907,6 +939,99 @@ const ieGo = () => {
 document.getElementById("ie-go").addEventListener("click", ieGo);
 ieUrl.addEventListener("keydown", (e) => { if (e.key === "Enter") ieGo(); });
 ieUrl.addEventListener("focus", () => ieUrl.select());
+
+// ---- notepad dropdown menus ----
+const npMenu = document.createElement("div");
+npMenu.className = "np-menu hidden";
+document.body.appendChild(npMenu);
+
+const npDialog = (title, msg) => {
+  const d = document.createElement("section");
+  d.className = "window np-dialog";
+  d.style.cssText = "left:50%;top:38%;width:280px;z-index:1000;transform:translateX(-50%);";
+  d.innerHTML =
+    '<header class="titlebar"><span class="title">' + title + '</span>' +
+    '<span class="winbtns"><button class="winbtn close">✕</button></span></header>' +
+    '<div class="winbody" style="padding:16px 16px 14px;font-family:var(--ui);font-size:11px;text-transform:lowercase;">' +
+    msg +
+    '<div style="text-align:center;margin-top:16px;"><button class="xpbtn np-ok">ok</button></div></div>';
+  document.body.appendChild(d);
+  const close = () => d.remove();
+  d.querySelector(".close").onclick = close;
+  d.querySelector(".np-ok").onclick = close;
+};
+
+const selectBody = (win) => {
+  const body = win.querySelector(".winbody");
+  const range = document.createRange();
+  range.selectNodeContents(body);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+};
+const openSettings = () => {
+  const s = document.getElementById("win-settings");
+  s.classList.remove("hidden");
+  s.style.zIndex = ++zTop;
+};
+
+const NP = {
+  file: [
+    ["new", null],
+    ["open…", null],
+    ["save", () => npDialog("notepad", "saved! (just kidding, it's a website)")],
+    ["sep"],
+    ["exit", (win) => { win.classList.add("hidden"); syncTabs(); }],
+  ],
+  edit: [
+    ["undo", null], ["sep"],
+    ["cut", null], ["copy", null], ["paste", null], ["sep"],
+    ["select all", (win) => selectBody(win)],
+  ],
+  format: [
+    ["word wrap", null],
+    ["font…", () => openSettings()],
+  ],
+  view: [["status bar", null]],
+  help: [["about notepad", () => npDialog("about notepad", "notepad, more or less. part of vlensys xp.")]],
+};
+
+let npOpenSpan = null;
+const closeNp = () => {
+  npMenu.classList.add("hidden");
+  if (npOpenSpan) npOpenSpan.classList.remove("open");
+  npOpenSpan = null;
+};
+document.querySelectorAll(".menubar span").forEach((span) => {
+  span.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const items = NP[span.textContent.trim()];
+    if (!items) return;
+    if (npOpenSpan === span) { closeNp(); return; }
+    closeNp();
+    npOpenSpan = span;
+    span.classList.add("open");
+    const win = span.closest(".window");
+    npMenu.innerHTML = "";
+    items.forEach(([label, fn]) => {
+      if (label === "sep") {
+        const s = document.createElement("div");
+        s.className = "sep";
+        npMenu.appendChild(s);
+        return;
+      }
+      const b = document.createElement("button");
+      b.textContent = label;
+      b.addEventListener("click", () => { closeNp(); if (fn) fn(win); });
+      npMenu.appendChild(b);
+    });
+    const r = span.getBoundingClientRect();
+    npMenu.style.left = r.left + "px";
+    npMenu.style.top = r.bottom + "px";
+    npMenu.classList.remove("hidden");
+  });
+});
+document.addEventListener("click", closeNp);
 </script>
 </body>
 </html>

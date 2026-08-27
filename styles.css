@@ -17,7 +17,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Space Grotesk', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
   line-height: 1.5;
 }
 
@@ -201,4 +201,74 @@ h2 {
   .socials {
     justify-content: center;
   }
+}
+
+.player-section {
+  position: relative;
+  text-transform: lowercase;
+}
+
+.player-embed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.player-embed iframe {
+  width: 300px;
+  height: 80px;
+  border: 0;
+}
+
+.player-now {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.pbtn {
+  align-self: center;
+  font: inherit;
+  display: flex;
+  padding: 0;
+  margin-right: 2px;
+  background: none;
+  border: 0;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.pbtn:hover {
+  color: var(--text);
+}
+
+.pbtn svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.pbtn .icon-pause,
+.pbtn.is-playing .icon-play {
+  display: none;
+}
+
+.pbtn.is-playing .icon-pause {
+  display: block;
+}
+
+.player-artist {
+  color: var(--text-dim);
+}
+
+.player-artist::before {
+  content: "- ";
 }

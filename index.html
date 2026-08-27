@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260625" />
+  <link rel="stylesheet" href="styles.css?v=20260827a" />
 </head>
 <body>
   <div class="page">
@@ -20,11 +20,10 @@
         <h3>lyricspot</h3>
         <p class="repo">time-synced lyrics in ur terminal!</p>
       </a>
-      <div class="project-card project-card--soon">
-        <h3>re:craft</h3>
-        <p class="repo">re:zero stuff, in minecraft</p>
-        <span class="soon">coming soon</span>
-      </div>
+      <a class="project-card" href="https://github.com/mizly/aether" target="_blank" rel="noreferrer">
+        <h3>aether</h3>
+        <p class="repo">greatest open source farming macro since farmhelper!</p>
+      </a>
     </aside>
 
     <main class="main-column">
@@ -51,7 +50,20 @@
       <section class="about">
         <h2>about</h2>
         <p>im 14</p>
-        <p>hi again</p>
+        <p>i like yuri</p>
+        <p>i also like ug rap and shoegaze</p>
+      </section>
+
+      <section class="player-section">
+        <div class="player-embed" aria-hidden="true"><div id="player-embed"></div></div>
+        <div class="player-now">
+          <button class="pbtn" type="button" data-action="toggle" aria-label="Play">
+            <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2v13.6L19 12z"/></svg>
+            <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h3.2v14H7zM13.8 5H17v14h-3.2z"/></svg>
+          </button>
+          <span class="player-title"></span>
+          <span class="player-artist"></span>
+        </div>
       </section>
 
 
@@ -72,5 +84,8 @@
       </a>
     </aside>
   </div>
+  <script src="dist/tracks.js?v=20260827a"></script>
+  <script src="dist/player.js?v=20260827a"></script>
+  <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
 </body>
 </html>

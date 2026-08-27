@@ -27,8 +27,16 @@ interface Window {
   onSpotifyIframeApiReady?: (api: SpotifyIFrameApi) => void;
 }
 
+interface NowPlaying {
+  playing: boolean;
+  title: string;
+  artist: string;
+  spotifyId: string | null;
+}
+
 (() => {
   const STALL_MS = 6000;
+  const POLL_MS = 20000;
 
   const host = document.querySelector<HTMLElement>('.player-section');
   const mount = document.getElementById('player-embed');
@@ -46,6 +54,8 @@ interface Window {
   const titleEl = pick('.player-title');
   const artistEl = pick('.player-artist');
   const toggleBtn = pick<HTMLButtonElement>('[data-action="toggle"]');
+  const embedEl = pick('.player-embed');
+  const endpoint = section.dataset.nowPlaying ?? '';
 
   let controller: SpotifyEmbedController | null = null;
   let slot = 0;
@@ -56,6 +66,9 @@ interface Window {
   let intent = false;
   let ended = false;
   let sawUpdate = false;
+  let live = false;
+  let liveId = '';
+  let queued: NowPlaying | null = null;
 
   const order = TRACKS.map((_, i) => i);
   for (let i = order.length - 1; i > 0; i--) {
@@ -73,6 +86,54 @@ interface Window {
     paused = value;
     toggleBtn.classList.toggle('is-playing', !value);
     toggleBtn.setAttribute('aria-label', value ? 'Play' : 'Pause');
+    if (value && queued) apply(queued);
+  }
+
+  function enter(data: NowPlaying): void {
+    queued = null;
+    live = true;
+    section.classList.add('is-live');
+    section.classList.toggle('has-embed', data.spotifyId !== null);
+    embedEl.setAttribute('aria-hidden', data.spotifyId === null ? 'true' : 'false');
+    titleEl.textContent = data.title;
+    artistEl.textContent = data.artist;
+    if (data.spotifyId !== null && data.spotifyId !== liveId) {
+      liveId = data.spotifyId;
+      if (controller) controller.loadUri('spotify:track:' + liveId);
+    }
+  }
+
+  function leave(): void {
+    queued = null;
+    if (!live) return;
+    live = false;
+    liveId = '';
+    section.classList.remove('is-live', 'has-embed');
+    embedEl.setAttribute('aria-hidden', 'true');
+    paintTrack();
+    load(false);
+  }
+
+  function apply(data: NowPlaying): void {
+    if (!data.playing) {
+      leave();
+      return;
+    }
+    if (!live && !paused) {
+      queued = data;
+      return;
+    }
+    enter(data);
+  }
+
+  async function poll(): Promise<void> {
+    try {
+      const res = await fetch(endpoint, { cache: 'no-store' });
+      if (!res.ok) return;
+      apply((await res.json()) as NowPlaying);
+    } catch {
+      return;
+    }
   }
 
   function paintTrack(): void {
@@ -114,6 +175,7 @@ interface Window {
       (embed) => {
         controller = embed;
         section.classList.add('is-ready');
+        if (live && liveId) embed.loadUri('spotify:track:' + liveId);
         embed.addListener('playback_update', (payload) => {
           const data = payload.data;
           posMs = data.position;
@@ -131,7 +193,7 @@ interface Window {
     const elapsed = paused ? posMs : posMs + idle;
     const finished = durMs > 0 && elapsed >= durMs - 150;
     const stalled = sawUpdate && idle > STALL_MS;
-    if (intent && !ended && !paused && (finished || stalled)) {
+    if (!live && intent && !ended && !paused && (finished || stalled)) {
       ended = true;
       advance();
     }
@@ -139,4 +201,12 @@ interface Window {
   }
 
   requestAnimationFrame(frame);
+
+  if (endpoint) {
+    poll();
+    window.setInterval(poll, POLL_MS);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) poll();
+    });
+  }
 })();

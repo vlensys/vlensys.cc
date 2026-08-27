@@ -1,0 +1,12 @@
+name = "vlensys-now-playing"
+main = "src/index.ts"
+compatibility_date = "2026-08-27"
+
+[vars]
+LASTFM_USER = "vlensys"
+ALLOWED_ORIGIN = "https://vlensys.cc,http://localhost:8000,http://127.0.0.1:8000,http://0.0.0.0:8000"
+
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 60, period = 60 }

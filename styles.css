@@ -272,3 +272,18 @@ h2 {
 .player-artist::before {
   content: "- ";
 }
+
+.player-section.is-live {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.player-section.is-live .player-now {
+  order: 1;
+}
+
+.player-section.is-live .player-embed {
+  order: 2;
+}

@@ -113,6 +113,49 @@ h2 {
   flex-shrink: 0;
 }
 
+.avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.status-bubble {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  margin-bottom: 16px;
+  width: max-content;
+  max-width: 200px;
+  min-width: 56px;
+  padding: 10px 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  color: var(--text);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.status-text {
+  display: block;
+  word-break: break-word;
+}
+
+.status-tail {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  background: var(--card-bg);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-radius: 0 0 3px 0;
+  transform: translateX(-50%) rotate(45deg);
+}
+
 .hero-info {
   display: flex;
   flex-direction: column;
@@ -261,6 +304,10 @@ h2 {
     flex-direction: column;
     text-align: center;
     padding: 32px 24px;
+  }
+
+  .status-bubble {
+    margin-bottom: 20px;
   }
 
   .socials {
